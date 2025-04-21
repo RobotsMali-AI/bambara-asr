@@ -171,7 +171,7 @@ parser.add_argument(
 )
 parser.add_argument('--no_lower_case', dest='lower_case', action='store_false')
 parser.add_argument("--log", action='store_true')
-parser.set_defaults(log=False, lower_case=True, spe_train_extremely_large_corpus=False)
+parser.set_defaults(log=False, lower_case=False, spe_train_extremely_large_corpus=False)
 args = parser.parse_args()
 
 
