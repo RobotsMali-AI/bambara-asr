@@ -171,7 +171,8 @@ parser.add_argument(
 )
 parser.add_argument('--no_lower_case', dest='lower_case', action='store_false')
 parser.add_argument("--log", action='store_true')
-parser.set_defaults(log=False, lower_case=False, spe_train_extremely_large_corpus=False)
+# Set spe_pad to false if we don't wanna include this special token
+parser.set_defaults(log=False, lower_case=False, spe_train_extremely_large_corpus=False, spe_pad=True)
 args = parser.parse_args()
 
 
