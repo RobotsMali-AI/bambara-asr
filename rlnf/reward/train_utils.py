@@ -12,6 +12,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and  
 limitations under the License.
 """
+import os
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
@@ -39,6 +40,9 @@ def fit(
     print("Starting training...")
     best_val_loss = float('inf')
     history = {'train_loss': [], 'val_loss': []}
+
+    # Create checkpoint directory if it doesn't exist
+    os.makedirs(checkpoint_dir, exist_ok=True)
 
     for epoch in range(1, epochs + 1):
         model.train()

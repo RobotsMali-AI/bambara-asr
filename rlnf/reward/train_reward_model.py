@@ -99,7 +99,7 @@ def main():
         preprocessor_config=preprocessor_config,
         batch_size=args.batch_size,
         audio_transform=None,
-        num_workers=4,
+        num_workers=4,    #  Note: if yuou are using a GPU, set this to 0, before we fix the issue
     )
 
     # Model
