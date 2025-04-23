@@ -89,6 +89,7 @@ def main():
         args.test_manifest,
         args.tokenizer_path,
         preprocessor,
+        device=device,
         batch_size=args.batch_size,
         sample_rate=None,
         audio_transform=None,

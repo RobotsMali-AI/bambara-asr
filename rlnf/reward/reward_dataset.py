@@ -54,6 +54,7 @@ class RewardDataset(Dataset):
         manifest_path: str,
         tokenizer_model_path: str,
         preprocessor: torch.nn.Module,
+        device: torch.device,
         sample_rate: Optional[int] = 16000,
         audio_transform: Optional[Callable] = None,
     ):
@@ -66,6 +67,9 @@ class RewardDataset(Dataset):
             audio_transform (Callable, optional): Additional audio transforms.
         """
         self.preprocessor = preprocessor
+        # Ensure the preprocessor is on the same device as the input Tensors
+        # In order to avoid RuntimeError: stft input and window must be on the same device
+        self.preprocessor.to(device)
         self.sample_rate = sample_rate
         self.audio_transform = audio_transform
 
@@ -178,6 +182,7 @@ def get_dataloaders(
     tokenizer_model_path: str,
     preprocessor: torch.nn.Module,
     batch_size: int,
+    device: torch.device,
     sample_rate: Optional[int] = 16000,
     audio_transform: Optional[Callable] = None,
     num_workers: int = 0,
@@ -202,13 +207,16 @@ def get_dataloaders(
         train_manifest,
         tokenizer_model_path,
         preprocessor,
+        device,
         sample_rate,
         audio_transform,
     )
+
     test_ds = RewardDataset(
         test_manifest,
         tokenizer_model_path,
         preprocessor,
+        device,
         sample_rate,
         audio_transform,
     )
