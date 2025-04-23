@@ -16,6 +16,7 @@ import os
 import argparse
 import json
 import shutil
+from tqdm import tqdm
 from datasets import load_dataset, Audio, DatasetDict
 
 
@@ -71,7 +72,7 @@ def main():
         print(f"Processing split '{split}' ({len(dataset)} samples)")
 
         with open(manifest_path, 'w', encoding='utf-8') as mf:
-            for i, example in enumerate(dataset):
+            for i, example in tqdm(enumerate(dataset), total=len(dataset)):
                 # Determine audio source path
                 audio_field = None
                 for col, feat in dataset.features.items():
@@ -108,7 +109,7 @@ def main():
                         raise RuntimeError(f"Cannot retrieve audio for example {i} in split {split}")
 
                 # Build manifest entry: audio_filepath + other fields
-                entry = {'audio_filepath': dest_rel}
+                entry = {'audio_filepath': dest_path}
                 # copy other fields except audio_field
                 for k, v in example.items():
                     if k == audio_field:
