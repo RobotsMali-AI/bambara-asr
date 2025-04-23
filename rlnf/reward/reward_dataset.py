@@ -20,6 +20,7 @@ from torch.utils.data import Dataset, DataLoader
 from torch.nn.utils.rnn import pad_sequence
 import torchaudio
 from sentencepiece import SentencePieceProcessor
+from nemo.collections.asr.modules import AudioToMelSpectrogramPreprocessor
 
 TOKENIZER_PAD_ID = 1 # valid for this tokenizer (we might need to change if we retrain it)
 
@@ -53,9 +54,7 @@ class RewardDataset(Dataset):
         self,
         manifest_path: str,
         tokenizer_model_path: str,
-        preprocessor: torch.nn.Module,
-        device: torch.device,
-        sample_rate: Optional[int] = 16000,
+        preprocessor_config: dict,
         audio_transform: Optional[Callable] = None,
     ):
         """
@@ -66,11 +65,8 @@ class RewardDataset(Dataset):
             sample_rate (int, optional): If provided, resample audio to this rate.
             audio_transform (Callable, optional): Additional audio transforms.
         """
-        self.preprocessor = preprocessor
-        # Ensure the preprocessor is on the same device as the input Tensors
-        # In order to avoid RuntimeError: stft input and window must be on the same device
-        self.preprocessor.to(device)
-        self.sample_rate = sample_rate
+        self.preprocessor = AudioToMelSpectrogramPreprocessor(**preprocessor_config)
+        self.sample_rate = self.preprocessor._sample_rate
         self.audio_transform = audio_transform
 
         # Load tokenizer
@@ -180,10 +176,8 @@ def get_dataloaders(
     train_manifest: str,
     test_manifest: str,
     tokenizer_model_path: str,
-    preprocessor: torch.nn.Module,
+    preprocessor_config: dict,
     batch_size: int,
-    device: torch.device,
-    sample_rate: Optional[int] = 16000,
     audio_transform: Optional[Callable] = None,
     num_workers: int = 0,
 ) -> Tuple[DataLoader, DataLoader]:
@@ -206,18 +200,14 @@ def get_dataloaders(
     train_ds = RewardDataset(
         train_manifest,
         tokenizer_model_path,
-        preprocessor,
-        device,
-        sample_rate,
+        preprocessor_config,
         audio_transform,
     )
 
     test_ds = RewardDataset(
         test_manifest,
         tokenizer_model_path,
-        preprocessor,
-        device,
-        sample_rate,
+        preprocessor_config,
         audio_transform,
     )
 

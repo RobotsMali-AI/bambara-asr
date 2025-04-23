@@ -20,7 +20,6 @@ import torch.nn as nn
 import torch.optim as optim
 import numpy as np
 import matplotlib.pyplot as plt
-from nemo.collections.asr.models import EncDecCTCModel
 
 from reward_dataset import get_dataloaders
 from reward_model import RewardModel
@@ -69,12 +68,21 @@ def main():
     print("Configuration:")
     print(json.dumps(vars(args), indent=2))
 
-    # Load QuartzNet preprocessor
-    print("Loading QuartzNet preprocessor...")
-    quartznet = EncDecCTCModel.from_pretrained("RobotsMali/stt-bm-quartznet15x5-V0")
-    quartznet.eval()
-    preprocessor = quartznet.preprocessor
-    n_mel = quartznet.cfg.preprocessor.features # Number of mel features
+    ### Audio preprocessor Config
+    preprocessor_config = {
+        'normalize': 'per_feature',
+        'window_size': 0.02,
+        'sample_rate': 16000,
+        'window_stride': 0.01,
+        'window': 'hann',
+        'features': 64,
+        'n_fft': 512,
+        'frame_splicing': 1,
+        'dither': 1e-05,
+        'stft_conv': False
+    }
+    n_mel = preprocessor_config['features']
+
 
     # Load tokenizer
     print("Loading tokenizer...")
@@ -88,10 +96,8 @@ def main():
         args.train_manifest,
         args.test_manifest,
         args.tokenizer_path,
-        preprocessor,
-        device=device,
+        preprocessor_config=preprocessor_config,
         batch_size=args.batch_size,
-        sample_rate=None,
         audio_transform=None,
         num_workers=4,
     )
