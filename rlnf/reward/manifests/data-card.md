@@ -43,9 +43,9 @@ configs:
   default: true
   data_files:
   - split: train
-    path: "partially-reviewed/train/*.arrow"
+    path: "partially-reviewed/train-*.arrow"
   - split: test
-    path: "partially-reviewed/test/*.arrow"
+    path: "partially-reviewed/test-*.arrow"
 
 ---
 
