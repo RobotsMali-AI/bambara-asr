@@ -19,7 +19,7 @@ import json
 import torch
 import torch.nn as nn
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
-from reward_dataset import TOKENIZER_PAD_ID
+from rlnf.dataloaders.reward_dataset import TOKENIZER_PAD_ID
 
 def masked_mean_pooling(outputs: torch.Tensor, lengths: torch.Tensor) -> torch.Tensor:
     """

@@ -21,9 +21,9 @@ import torch.optim as optim
 import numpy as np
 import matplotlib.pyplot as plt
 
-from reward_dataset import get_dataloaders
-from reward_model import RewardModel
-from train_utils import fit, evaluate
+from rlnf.dataloaders.reward_dataset import get_dataloaders
+from rlnf.reward.reward_model import RewardModel
+from rlnf.reward.train_utils import fit, evaluate
 from sentencepiece import SentencePieceProcessor
 
 

@@ -16,7 +16,7 @@ import os
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
-from reward_model import RewardModel
+from rlnf.reward.reward_model import RewardModel
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 
 def fit(
