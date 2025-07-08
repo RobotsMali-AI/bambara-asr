@@ -24,14 +24,13 @@ This repository is licensed under the MIT License. See [LICENSE](LICENSE) for de
 ```
 ---
 
-````
 ## Getting Started
 
 1. **Clone the repository**:
    ```bash
    git clone https://github.com/RobotsMali-AI/bambara-asr.git
    cd bambara-asr
-````
+   ```
 
 2. **Install requirements** (for RLNF toolkit & core dependencies):
 
