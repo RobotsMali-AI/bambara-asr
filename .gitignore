@@ -1,1 +1,8 @@
 notes.md
+datacrunch-setup.bash
+note.ipynb
+*checkpoints
+*__pycache__
+*.egg*
+rlnf/reward/annotation-exports
+rlnf/reward/manifests
