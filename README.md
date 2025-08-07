@@ -13,12 +13,11 @@ This repository is licensed under the MIT License. See [LICENSE](LICENSE) for de
 ## Repository Structure
 
 ```
-├── bam-tokenizer-spe-bpe-v1024/      # Pretrained SentencePiece tokenizer model & vocab; trained on bambara text
+├── bam-tokenizer-spe-bpe-v1024/     # Pretrained SentencePiece tokenizer model & vocab; trained on bambara text
 ├── docs/                            # Technical reports, model cards, and documentation drafts
 ├── early-experiments/               # Initial ASR fine‑tuning scripts and configs
-├── rlnf/                            # Core RLHF toolkit and training library
-├── utils/                           # Helper scripts and utilities
-├── test_rlnf.ipynb                  # Notebook demo for rlnf training workflow
+├── rlnf/                            # Core RLHF toolkit and training library                          
+├── train_reward_model.ipynb         # Notebook demo for rlnf training workflow
 ├── LICENSE                          # Project license (MIT)
 └── README.md                        
 ```
@@ -28,7 +27,7 @@ This repository is licensed under the MIT License. See [LICENSE](LICENSE) for de
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/RobotsMali-AI/bambara-asr.git
+   git clone https://github.com/RobotsMali-AI/bambara-asr.git -branch=dev
    cd bambara-asr
    ```
 
@@ -37,8 +36,7 @@ This repository is licensed under the MIT License. See [LICENSE](LICENSE) for de
 Before you try to experiment with Reinforcement Learning from Nouhoum Feedback
 
    ```bash
-   pip install -r rlnf/requirements.txt
-   pip install -e rlnf
+   pip install .
    ```
    
    Note that the second line will install the package in edit mode, remove -e option to create a permanent install
@@ -49,10 +47,9 @@ Before you try to experiment with Reinforcement Learning from Nouhoum Feedback
    * **docs/**: Technical reports, model cards, and documentation drafts for datasets and ASR models that we released on HuggingFace.
    * **early-experiments/**: Prototype scripts and configuration files for initial ASR model fine‑tuning experiments using NeMo.
    * **rlnf/**: Core Python package implementing reinforcement learning from human feedback (RLHF) for ASR.
-   * **utils/**: Collection of utility scripts and helper functions.
 
 4. **Run an RLNF demo training session quickly**:
-   Open `test_rlnf.ipynb`, follow the step‑by‑step example of a PPO‑based ASR fine‑tuning workflow.
+   Open `train_reward_model.ipynb`, follow the step‑by‑step example of a Reward Model.
 
    Note: You'll need a few audio samples organized by a manifest.jsonl file and a significant amount of RAM to test the pipeline on a CPU device at the moment. The code is not optimized.
 
