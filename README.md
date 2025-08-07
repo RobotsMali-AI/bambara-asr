@@ -38,6 +38,10 @@ Before you try to experiment with Reinforcement Learning from Nouhoum Feedback
    ```bash
    pip install .
    ```
+   ou 
+   ```bash
+   pip install git+https://github.com/diarray-hub/bambara-asr.git@dev#egg=rlnf
+   ```
    
    Note that the second line will install the package in edit mode, remove -e option to create a permanent install
 
