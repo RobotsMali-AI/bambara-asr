@@ -27,7 +27,7 @@ This repository is licensed under the MIT License. See [LICENSE](LICENSE) for de
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/RobotsMali-AI/bambara-asr.git -branch=dev
+   git clone https://github.com/RobotsMali-AI/bambara-asr.git --branch=dev
    cd bambara-asr
    ```
 
