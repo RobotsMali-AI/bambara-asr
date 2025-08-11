@@ -1,7 +1,7 @@
 training:
   seed: 42
   device: cuda
-  precision: fp32
+  precision: bf16
   clip_eps: 0.2
   actor_lr: 1.0e-05
   critic_lr: 0.0001
