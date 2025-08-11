@@ -1,0 +1,11 @@
+Cython==3.0.11
+packaging==24.2
+nemo_toolkit==2.3.0
+megatron-core==0.9.0
+pydub==0.25.1
+wandb==0.19.4
+bambara-normalizer==1.0.0
+pyyaml==6.0.2
+soundfile==0.12.1
+torch==2.6.0
+torchaudio==2.6.0
