@@ -16,114 +16,158 @@ import os
 import argparse
 import json
 import shutil
-from tqdm import tqdm
-from datasets import load_dataset, Audio, DatasetDict
+from pathlib import Path
+from typing import Optional
+import soundfile as sf
+from datasets import load_dataset, Audio, DatasetDict, Features
+
+
+def ensure_dir(p: Path):
+    p.mkdir(parents=True, exist_ok=True)
+
+
+def pick_audio_column(features: Features) -> Optional[str]:
+    for name, feat in features.items():
+        if isinstance(feat, Audio):
+            return name
+    return None
+
+
+def write_manifest_line(fp, entry: dict):
+    fp.write(json.dumps(entry, ensure_ascii=False) + "\n")
+
+
+def example_duration(example_audio_value) -> Optional[float]:
+    # Works for both decode=False and decode=True
+    if isinstance(example_audio_value, dict):
+        # When decode=False, we often have {'path': str, 'bytes': None, 'sampling_rate': <maybe>, 'duration': <maybe>}
+        dur = example_audio_value.get("duration")
+        if isinstance(dur, (int, float)):
+            return float(dur)
+    return None
 
 
 def main():
-    """
-    Convert a Hugging Face dataset into a NeMo ASR dataset layout.
-
-    Usage:
-    python hf_to_nemo_asr.py \
-        --repo_id <hf_repo> \
-        --subset <subset_name> \
-        --save_dir <output_dir>
-
-    This script will:
-    - Load the Hugging Face dataset (`repo_id`, `subset`).
-    - For each split (train/test/validation), create:
-        save_dir/audios/<split>/
-        save_dir/<split>-manifest.jsonl
-    - Copy each example's audio file into the split's audio dir,
-        preserving basename when present, otherwise naming as <split>_<i>.wav.
-    - Write a JSONL manifest per split listing:
-        { "audio_filepath": <relative_path>, <all other columns> }
-    - Print paths to generated manifests.
-    """
     parser = argparse.ArgumentParser(description="Convert HF dataset to NeMo ASR format")
     parser.add_argument('--repo_id', type=str, required=True, help='Hugging Face dataset repo id')
-    parser.add_argument('--subset', type=str, default=None, help='Subset or config name')
+    parser.add_argument('--subset', type=str, default=None, help='Subset/config name')
     parser.add_argument('--save_dir', type=str, required=True, help='Directory to save NeMo dataset')
+    parser.add_argument('--text-field', type=str, default='text', help='Field name for text transcription')
+    parser.add_argument('--split', type=str, default=None, help='Only process a single split (train/test/validation)')
+    parser.add_argument('--overwrite', action='store_true', help='Overwrite existing files')
+    parser.add_argument('--decode-fallback', action='store_true', help='Force per-example decode when source path missing')
+
     args = parser.parse_args()
 
-    repo_id = args.repo_id
-    subset = args.subset
-    save_dir = args.save_dir
-    os.makedirs(save_dir, exist_ok=True)
+    save_dir = Path(args.save_dir)
+    ensure_dir(save_dir)
+    audio_base = save_dir / 'audios'
+    ensure_dir(audio_base)
 
-    # Load HF dataset
-    print(f"Loading dataset {repo_id}{' config='+subset if subset else ''}...")
-    if subset:
-        ds = load_dataset(repo_id, subset)
+    print(f"Loading dataset {args.repo_id}{' config='+args.subset if args.subset else ''}…")
+    if args.subset:
+        ds_any = load_dataset(args.repo_id, args.subset)
     else:
-        ds = load_dataset(repo_id)
-    assert isinstance(ds, DatasetDict), "Expected a DatasetDict with splits"
+        ds_any = load_dataset(args.repo_id)
+
+    if not isinstance(ds_any, DatasetDict):
+        raise ValueError("Expected a DatasetDict with splits")
 
     manifests = {}
-    # Prepare audio base dir
-    audio_base = os.path.join(save_dir, 'audios')
-    os.makedirs(audio_base, exist_ok=True)
 
-    for split, dataset in ds.items():
-        split_dir = os.path.join(audio_base, split)
-        os.makedirs(split_dir, exist_ok=True)
-        manifest_path = os.path.join(save_dir, f'{split}-manifest.jsonl')
-        print(f"Processing split '{split}' ({len(dataset)} samples)")
+    for split, dataset in ds_any.items():
+        if args.split and split != args.split:
+            continue
+
+        audio_col = pick_audio_column(dataset.features)
+        if audio_col is None:
+            raise ValueError(f"No Audio feature found in split '{split}'")
+
+        split_dir = audio_base / split
+        ensure_dir(split_dir)
+        manifest_path = save_dir / f"{split}-manifest.jsonl"
+
+        # Detect whether audio is currently decode=False on this split
+        decode_flag = isinstance(dataset.features[audio_col], Audio) and dataset.features[audio_col].decode
+        print(f"Split '{split}': {len(dataset)} rows | audio column='{audio_col}' | decode={decode_flag}")
+
+        # We'll try to copy from local path when available. If missing and --decode-fallback, decode on the fly.
+        # To avoid repeatedly recasting the whole dataset, we will cast only when we first need a decode.
+        decoded_ds = None
 
         with open(manifest_path, 'w', encoding='utf-8') as mf:
-            for i, example in tqdm(enumerate(dataset), total=len(dataset)):
-                # Determine audio source path
-                audio_field = None
-                for col, feat in dataset.features.items():
-                    if isinstance(feat, Audio):
-                        audio_field = col
-                        break
-                if audio_field is None:
-                    raise ValueError("No Audio feature found in dataset")
-                audio_info = example[audio_field]
-                # audio_info may be dict with 'path'
-                src_path = audio_info.get('path', None) if isinstance(audio_info, dict) else None
+            for i in enumerate((dataset)):
+                ex = dataset[i]
+                a = ex[audio_col]
+
+                # Determine source path
+                src_path = None
+                if isinstance(a, dict):
+                    src_path = a.get('path')
+
+                # Choose destination file name
                 if src_path:
                     fname = os.path.basename(src_path)
-                    # Ensure .wav extension
-                    if not fname.endswith('.wav'):
+                    if not fname.lower().endswith('.wav'):
                         fname = os.path.splitext(fname)[0] + '.wav'
                 else:
                     fname = f"{split}_{i}.wav"
-                dest_rel = os.path.join('audios', split, fname)
-                dest_path = os.path.join(save_dir, dest_rel)
 
-                # Copy if path exists
-                if src_path and os.path.exists(src_path):
-                    shutil.copy(src_path, dest_path)
+                dest_rel = Path('audios') / split / fname
+                dest_path = save_dir / dest_rel
+
+                # Copy or decode
+                need_copy = src_path and os.path.exists(src_path)
+                if need_copy:
+                    if args.overwrite or not dest_path.exists():
+                        shutil.copy(src_path, dest_path)
                 else:
-                    # try streaming download
-                    try:
-                        # download via dataset.load_audio
-                        arr = dataset[i][audio_field]['array']
-                        sample_rate = dataset[i][audio_field]['sampling_rate']
-                        import soundfile as sf
-                        sf.write(dest_path, arr, sample_rate)
-                    except Exception:
-                        raise RuntimeError(f"Cannot retrieve audio for example {i} in split {split}")
+                    if not args.decode_fallback:
+                        raise RuntimeError(
+                            f"No local path for example {i} in split '{split}'. "
+                            f"Re-run with --decode-fallback to decode and write audio."
+                        )
+                    # Lazy cast to decode=True only when needed
+                    if decoded_ds is None:
+                        print("[info] Falling back to per-example decode (cast decode=True) …")
+                        decoded_ds = dataset.cast_column(audio_col, Audio(decode=True))
+                    # Decode this item
+                    item = decoded_ds[i][audio_col]
+                    arr = item['array']
+                    sr = item['sampling_rate']
+                    ensure_dir(dest_path.parent)
+                    if args.overwrite or not dest_path.exists():
+                        sf.write(str(dest_path), arr, sr)
 
-                # Build manifest entry: audio_filepath + other fields
-                entry = {'audio_filepath': dest_path}
-                # copy other fields except audio_field
-                for k, v in example.items():
-                    if k == audio_field:
-                        # include duration if present
-                        if isinstance(v, dict) and 'duration' in v:
-                            entry['duration'] = v['duration']
-                        continue
-                    entry[k] = v
-                mf.write(json.dumps(entry, ensure_ascii=False) + '\n')
-        manifests[split] = manifest_path
+                # Build manifest entry
+                entry = {
+                    'audio_filepath': str(dest_rel),
+                }
+
+                # duration: prefer explicit key in example, else audio dict duration
+                dur = ex.get('duration')
+                if dur is None:
+                    dur = example_duration(a)
+                if dur is not None:
+                    entry['duration'] = float(dur)
+
+                # text field
+                if args.text_field in ex:
+                    entry['text'] = ex[args.text_field]
+                else:
+                    # Keep going but warn once
+                    if i == 0:
+                        print(f"[warn] text field '{args.text_field}' not found; leaving out 'text' in manifest.")
+
+                write_manifest_line(mf, entry)
+
+        manifests[split] = str(manifest_path)
+        print(f"[ok] Wrote {manifest_path}")
 
     print("Generated manifests:")
-    for split, path in manifests.items():
-        print(f"  {split}: {path}")
+    for split, p in manifests.items():
+        print(f"  {split}: {p}")
+
 
 if __name__ == '__main__':
     main()
