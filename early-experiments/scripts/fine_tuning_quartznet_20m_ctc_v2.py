@@ -14,9 +14,9 @@ limitations under the License.
 """
 import sys
 # from utils package
-from utils.preprocessing import check_and_convert_audio_channels
-from utils.helpers import load_config, enable_bn_se
-from utils.wandb import MyWandbLogger as WandbLogger
+from utils.python.preprocessing import check_and_convert_audio_channels
+from utils.python.helpers import load_config, enable_bn_se
+from utils.python.wandb import MyWandbLogger as WandbLogger
 # Lightning imports
 from lightning.pytorch.callbacks import ModelCheckpoint
 from lightning.pytorch.callbacks.early_stopping import EarlyStopping
