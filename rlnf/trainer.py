@@ -23,7 +23,7 @@ class RLNFTrainer:
     This class implements training and validation loops using Proximal Policy Optimization (PPO) to optimize the ASR model
     based on rewards provided by a reward model.
     Attributes:
-        asr_model (EncDecCTCModel | EncDecCTCModelBPE): The ASR model to be trained.
+        asr_model (EncDecCTCModel): The ASR model to be trained.
         reward_model (RewardModel): The reward model used to compute rewards for the ASR outputs.
         critic_model (CriticModel): The critic model used in PPO for value estimation.
         train_manifest (str): Path to the training manifest file containing audio file paths and metadata.
@@ -121,7 +121,7 @@ class RLNFTrainer:
         if wandb_logging:
             # W&B init
             wandb.init(
-                project='Bambara-RLNF',
+                project=wandb_project,
                 name=run_name,
                 config={
                     'batch_size': batch_size,

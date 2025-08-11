@@ -1,31 +1,39 @@
+#!/usr/bin/env python3
 """
-Copyright 2025 RobotsMali AI4D Lab.
+Train Reward Model (Config-driven)
+---------------------------------
+All parameters are provided via a YAML config file (including the audio
+preprocessor settings).
 
-Licensed under the MIT License; you may not use this file except in compliance with the License.  
-You may obtain a copy of the License at:
+Usage
+~~~~~
 
-https://opensource.org/licenses/MIT
+# Train using a config
+python reward_model_train_configured.py --config config.yaml
 
-Unless required by applicable law or agreed to in writing, software  
-distributed under the License is distributed on an "AS IS" BASIS,  
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  
-See the License for the specific language governing permissions and  
-limitations under the License.
 """
 import os
 import json
 import argparse
+from typing import Any, Dict
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
-import numpy as np
-import matplotlib.pyplot as plt
+
+try:
+    import yaml
+except Exception as e:
+    raise RuntimeError("PyYAML is required. Install with: pip install pyyaml") from e
 
 from rlnf.dataloaders.reward_dataset import get_dataloaders
 from rlnf.reward.reward_model import RewardModel
 from rlnf.reward.train_utils import fit, evaluate
 from sentencepiece import SentencePieceProcessor
 
+# -----------------------
+# Tokenizer
+# -----------------------
 
 def load_tokenizer(model_path: str) -> SentencePieceProcessor:
     sp = SentencePieceProcessor()
@@ -33,73 +41,122 @@ def load_tokenizer(model_path: str) -> SentencePieceProcessor:
     return sp
 
 
-def main():
-    parser = argparse.ArgumentParser(description="Train a reward model on audio+text data")
-    parser.add_argument('--train_manifest', type=str, required=True)
-    parser.add_argument('--test_manifest', type=str, required=True)
-    parser.add_argument('--tokenizer_path', type=str, required=True,
-                        help='Path to SentencePiece .model file')
-    parser.add_argument('--epochs', type=int, required=True)
-    parser.add_argument('--batch_size', type=int, default=16)
-    parser.add_argument('--lr', type=float, default=1e-3)
-    parser.add_argument('--save_dir', type=str, default='./training_archives')
-    parser.add_argument('--use_scheduler', action='store_true')
-    parser.add_argument('--scheduler_step_size', type=int, default=30)
-    parser.add_argument('--scheduler_gamma', type=float, default=0.8)
-    parser.add_argument('--dropout', type=float, default=0.3)
-    parser.add_argument('--hidden_dim', type=int, default=256)
-    parser.add_argument('--embed_dim', type=int, default=128)
-    parser.add_argument('--plot', action='store_true',
-                        help='Plot predictions vs. targets after eval')
-    parser.add_argument('--seed', type=int, default=42)
-    args = parser.parse_args()
+# -----------------------
+# Config helpers
+# -----------------------
+
+def _require(d: Dict[str, Any], key: str) -> Any:
+    if key not in d:
+        raise KeyError(f"Missing required key in config: '{key}'")
+    return d[key]
+
+
+def load_config(path: str) -> Dict[str, Any]:
+    with open(path, "r", encoding="utf-8") as f:
+        cfg = yaml.safe_load(f)
+    # Basic shape checks
+    for top in ("paths", "training", "dataloader", "optimizer", "model", "preprocessor"):
+        if top not in cfg:
+            raise KeyError(f"Config missing top-level section '{top}'")
+    return cfg
+
+
+# -----------------------
+# Main
+# -----------------------
+
+def parse_args() -> argparse.Namespace:
+    p = argparse.ArgumentParser(description="Config-driven Reward Model training")
+    p.add_argument("--config", type=str, help="Path to YAML config")
+    return p.parse_args()
+
+
+def main() -> None:
+    args = parse_args()
+
+    if not args.config:
+        raise SystemExit("--config is required")
+
+    cfg = load_config(args.config)
+
+    # Paths
+    train_manifest = _require(cfg["paths"], "train_manifest")
+    test_manifest = _require(cfg["paths"], "test_manifest")
+    save_dir = _require(cfg["paths"], "save_dir")
+    tokenizer_path = _require(cfg["paths"], "tokenizer_path")
+
+    # Training & dataloader
+    epochs = int(_require(cfg["training"], "epochs"))
+    seed = int(cfg["training"].get("seed", 42))
+    checkpoint_dir_name = cfg["training"].get("checkpoint_dir", "checkpoints")
+
+    batch_size = int(_require(cfg["dataloader"], "batch_size"))
+    num_workers = int(cfg["dataloader"].get("num_workers", 0))
+
+    # Optimizer
+    opt_cfg = _require(cfg, "optimizer")
+    lr = float(_require(opt_cfg, "lr"))
+
+    # Scheduler
+    sch_cfg = cfg.get("scheduler", {"use": False})
+    use_scheduler = bool(sch_cfg.get("use", False))
+    step_size = int(sch_cfg.get("step_size", 30))
+    gamma = float(sch_cfg.get("gamma", 0.8))
+
+    # Model
+    mcfg = _require(cfg, "model")
+    embed_dim = int(mcfg.get("embed_dim", 128))
+    hidden_dim = int(mcfg.get("hidden_dim", 256))
+    lstm_layers = int(mcfg.get("lstm_layers", 1))
+    audio_conv_channels = int(mcfg.get("audio_conv_channels", 128))
+    audio_conv_layers = int(mcfg.get("audio_conv_layers", 3))
+    head_hidden = int(mcfg.get("head_hidden", hidden_dim))
+    dropout = float(mcfg.get("dropout", 0.3))
+
+    # Preprocessor
+    preprocessor_config: Dict[str, Any] = _require(cfg, "preprocessor")
+    n_mel = int(preprocessor_config.get("features", 64))
 
     # Reproducibility
-    torch.manual_seed(args.seed)
-    np.random.seed(args.seed)
+    torch.manual_seed(seed)
+    np.random.seed(seed)
 
-    # Create save dir
-    os.makedirs(args.save_dir, exist_ok=True)
+    # Create save dirs
+    os.makedirs(save_dir, exist_ok=True)
+    checkpoint_dir = os.path.join(save_dir, checkpoint_dir_name)
+    os.makedirs(checkpoint_dir, exist_ok=True)
 
     # Device
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    # Print config
-    print("Configuration:")
-    print(json.dumps(vars(args), indent=2))
-
-    ### Audio preprocessor Config
-    preprocessor_config = {
-        'normalize': 'per_feature',
-        'window_size': 0.02,
-        'sample_rate': 16000,
-        'window_stride': 0.01,
-        'window': 'hann',
-        'features': 64,
-        'n_fft': 512,
-        'frame_splicing': 1,
-        'dither': 1e-05,
-        'stft_conv': False
+    # Print config snapshot
+    pretty = {
+        "paths": cfg["paths"],
+        "training": {k: cfg["training"][k] for k in cfg["training"]},
+        "dataloader": cfg["dataloader"],
+        "optimizer": cfg["optimizer"],
+        "scheduler": cfg.get("scheduler", {}),
+        "model": cfg["model"],
+        "preprocessor": cfg["preprocessor"],
     }
-    n_mel = preprocessor_config['features']
-
+    print("Configuration:\n" + json.dumps(pretty, indent=2))
 
     # Load tokenizer
     print("Loading tokenizer...")
-    tokenizer = load_tokenizer(args.tokenizer_path)
+    tokenizer = load_tokenizer(tokenizer_path)
     vocab_size = tokenizer.GetPieceSize()
     print(f"Text Tokenizer Vocabulary size: {vocab_size}")
 
     # DataLoaders
     print("Preparing data loaders...")
     train_loader, test_loader = get_dataloaders(
-        args.train_manifest,
-        args.test_manifest,
-        args.tokenizer_path,
+        train_manifest,
+        test_manifest,
+        tokenizer_path,
         preprocessor_config=preprocessor_config,
-        batch_size=args.batch_size,
+        batch_size=batch_size,
         audio_transform=None,
-        num_workers=4,    #  Note: if yuou are using a GPU, set this to 0, before we fix the issue
+        num_workers=num_workers,
     )
 
     # Model
@@ -107,33 +164,35 @@ def main():
     model = RewardModel(
         n_mel=n_mel,
         vocab_size=vocab_size,
-        embed_dim=args.embed_dim,
-        lstm_hidden=args.hidden_dim,
-        lstm_layers=1,
-        audio_conv_channels=128,
-        audio_conv_layers=3,
-        head_hidden=args.hidden_dim,
-        dropout=args.dropout,
+        embed_dim=embed_dim,
+        lstm_hidden=hidden_dim,
+        lstm_layers=lstm_layers,
+        audio_conv_channels=audio_conv_channels,
+        audio_conv_layers=audio_conv_layers,
+        head_hidden=head_hidden,
+        dropout=dropout,
     )
     model.to(device)
 
     # Optimizer & loss
-    optimizer = optim.Adam(model.parameters(), lr=args.lr)
+    if opt_cfg.get("type", "adam").lower() != "adam":
+        print("[warning] Only Adam is supported currently; falling back to Adam.")
+
+    optimizer = optim.Adam(model.parameters(), lr=lr)
     criterion = nn.MSELoss()
 
     # Scheduler
     scheduler = None
-    if args.use_scheduler:
-        scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=args.scheduler_step_size, gamma=args.scheduler_gamma)
-        print(f"Using scheduler: StepLR with step_size={args.scheduler_step_size}, gamma={args.scheduler_gamma}")
+    if use_scheduler:
+        scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=step_size, gamma=gamma)
+        print(f"Using scheduler: StepLR(step_size={step_size}, gamma={gamma})")
 
     # Training
-    checkpoint_dir = args.save_dir + '/checkpoints'
     history = fit(
         model=model,
         train_dataloader=train_loader,
         valid_dataloader=test_loader,
-        epochs=args.epochs,
+        epochs=epochs,
         optimizer=optimizer,
         criterion=criterion,
         device=device,
@@ -142,55 +201,20 @@ def main():
     )
 
     # Final model
-    final_path = os.path.join(args.save_dir, 'final_model.ckpt')
+    final_path = os.path.join(save_dir, "final_model.rw")
     model.save(final_path)
     print(f"Saved final model to {final_path}")
 
     # Save training logs
-    logs_path = os.path.join(args.save_dir, 'training_logs.json')
-    with open(logs_path, 'w', encoding='utf-8') as f:
+    logs_path = os.path.join(save_dir, "training_logs.json")
+    with open(logs_path, "w", encoding="utf-8") as f:
         json.dump(history, f, indent=2)
     print(f"Saved training logs to {logs_path}")
 
     # Final evaluation
     print("Final evaluation on test set:")
-    _ = evaluate(model, test_loader, criterion, device)
+    print(evaluate(model, test_loader, criterion, device))
 
-    # Optional plot predictions vs targets
-    if args.plot:
-        preds, targets = [], []
-        model.eval()
-        with torch.no_grad():
-            for batch in test_loader:
-                audio = batch['audio_batch'].to(device)
-                text = batch['text_batch'].to(device)
-                labels = batch['score_batch'].numpy()
-                audio_lens = batch['audio_lengths'].to(device)
-                text_lens = batch['text_lengths'].to(device)
-
-                out = model(audio, audio_lens, text, text_lens).cpu().numpy()
-                preds.append(out)
-                targets.append(labels)
-        preds = np.concatenate(preds)
-        targets = np.concatenate(targets)
-
-        # Loss curves
-        plt.figure()
-        plt.plot(range(1, args.epochs+1), history['train_loss'], label='Train Loss')
-        plt.plot(range(1, args.epochs+1), history['val_loss'], label='Val Loss')
-        plt.xlabel('Epoch')
-        plt.ylabel('Loss')
-        plt.legend()
-        plt.show()
-
-        # Predictions vs Targets
-        plt.figure()
-        plt.scatter(targets, preds, alpha=0.5)
-        plt.xlabel('Targets')
-        plt.ylabel('Predictions')
-        plt.title('Pred vs Target')
-        plt.plot([0,1],[0,1], 'r--')
-        plt.show()
 
 if __name__ == '__main__':
     main()
