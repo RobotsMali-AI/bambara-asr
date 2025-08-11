@@ -4,5 +4,6 @@ note.ipynb
 *checkpoints
 *__pycache__
 *.egg*
-rlnf/reward/annotation-exports
 rlnf/reward/manifests
+rlnf/reward/train_reward_model.ipynb
+test_rlnf.ipynb
