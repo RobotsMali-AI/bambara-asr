@@ -1,0 +1,47 @@
+training:
+  seed: 42
+  device: cuda
+  precision: fp32
+  clip_eps: 0.2
+  actor_lr: 1.0e-05
+  critic_lr: 0.0001
+  epochs: 3
+  K_updates: 4
+  save_dir: ./rlnf_runs/exp01
+  pin_memory: false
+
+paths:
+  tokenizer_path: /path/to/tokenizer.model
+  reward_path: /path/to/reward_model.rw
+
+wandb:
+  enable: true
+  project: rlnf
+  run_name: exp01
+
+model:
+  name: RobotsMali/stt-bm-quartznet15x5-V0
+  vocab: [' ', "'", '-', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'à', 'â', 'ç', 'è', 'é', 'ê', 'î', 'ï', 'ô', 'ù', 'û', 'ė', 'ŋ', 'œ', 'ɔ', 'ɛ', 'ɲ', '’', '<APPLAUDISSEMENTS>', '<BRUITS>', '<CHEVAUCHEMENT>', '<ECHO>', '<INCOMPRÉHENSIBLE>', '<INVOCATION>', '<MUSIQUE>', '<RIRES>', '<TOUX>', '<CRIS>', '<PLEURES>']
+
+critic:
+  hidden_dim: 256
+  layers: 3
+  dropout: 0.1
+
+data:
+  train_manifest: path/to/train_rollouts.jsonl
+  valid_manifest: path/to/valid_rollouts.jsonl
+  batch_size: 4
+  num_workers: 0
+
+preprocessor:
+  normalize: per_feature
+  window_size: 0.02
+  sample_rate: 16000
+  window_stride: 0.01
+  window: hann
+  features: 64
+  n_fft: 512
+  frame_splicing: 1
+  dither: 1.0e-05
+  stft_conv: false
