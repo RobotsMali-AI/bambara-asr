@@ -1,17 +1,28 @@
-from setuptools import setup, find_packages
+from setuptools import setup
 
-__version__ = '0.1.0'
-
-with open("requirements.txt", encoding='utf-8') as f:
-    requirements = f.read().splitlines()
+__version__ = "0.1.0"
+requirements = open("requirements.txt", encoding="utf-8").read().splitlines()
 
 setup(
-    name='rlnf',
-    version=__version__, # Update version as needed
-    packages=find_packages(),
-    description='An implementation of Reinforcement Learning from Human Feedback for ASR',
+    name="rlnf",
+    version=__version__,
+    description="RL from Human Feedback for ASR",
+    author="RobotsMali AI4D Lab",
+    author_email="diarray@robotsmali.org",
+    license="MIT",
+    packages=[
+        "rlnf",
+        "rlnf.dataloaders",
+        "rlnf.ppo",
+        "rlnf.reward",
+    ],
+    package_dir={
+        "rlnf": "rlnf",
+        "rlnf.dataloaders": "dataloaders",
+        "rlnf.ppo": "ppo",
+        "rlnf.reward": "reward",
+    },
+    include_package_data=True,
     install_requires=requirements,
-    author='RobotsMali AI4D Lab',
-    author_email='diarray@robotsmali.org',
-    license='MIT',
+    python_requires=">=3.10",
 )
