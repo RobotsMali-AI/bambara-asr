@@ -180,7 +180,7 @@ def main() -> None:
     critic = build_critic(cfg, device)
 
     tokenizer = load_tokenizer(cfg["paths"]["tokenizer_path"])
-    reward_model = RewardModel.from_pretrained(cfg["paths"]["tokenizer_path"])
+    reward_model = RewardModel.from_pretrained(cfg["paths"]["reward_path"])
 
     trainer = RLNFTrainer(
         reward_model=reward_model,
