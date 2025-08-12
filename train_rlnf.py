@@ -189,19 +189,19 @@ def main() -> None:
         train_manifest=cfg["data"]["train_manifest"],
         val_manifest=cfg["data"]["valid_manifest"],
         audio_preprocessor_config=cfg["preprocessor"],
-        batch_size=cfg["data"]["batch_size"],
-        epochs=cfg["training"]["epochs"],
-        num_workers=cfg["data"]["num_workers"],
+        batch_size=int(cfg["data"]["batch_size"]),
+        epochs=int(cfg["training"]["epochs"]),
+        num_workers=int(cfg["data"]["num_workers"]),
         sp_tokenizer=tokenizer,
         device=device,
         wandb_logging=cfg["wandb"]["enable"],
         wandb_project=cfg["wandb"]["project"],
         run_name=cfg["wandb"]["run_name"],
-        K_updates = cfg["training"]["K_updates"],
-        actor_lr = cfg["training"]["actor_lr"],
-        critic_lr = cfg["training"]["critic_lr"],
-        clip_eps = cfg["training"]["clip_eps"],
-        pin_memory = cfg["training"]["pin_memory"]
+        K_updates = int(cfg["training"]["K_updates"]),
+        actor_lr = float(cfg["training"]["actor_lr"]),
+        critic_lr = float(cfg["training"]["critic_lr"]),
+        clip_eps = float(cfg["training"]["clip_eps"]),
+        pin_memory = bool(cfg["training"]["pin_memory"])
     )
 
     # Delegate training entirely to RLNFTrainer
