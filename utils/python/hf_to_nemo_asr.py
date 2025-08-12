@@ -120,6 +120,14 @@ def main():
                 if need_copy:
                     if args.overwrite or not dest_path.exists():
                         shutil.copy(src_path, dest_path)
+
+                elif "array" in a and "sampling_rate" in a:
+                    arr = a['array']
+                    sr = a['sampling_rate']
+                    ensure_dir(dest_path.parent)
+                    if args.overwrite or not dest_path.exists():
+                        sf.write(str(dest_path), arr, sr)
+
                 else:
                     if not args.decode_fallback:
                         raise RuntimeError(
