@@ -6,7 +6,7 @@ set -euo pipefail
 # -------------------------
 # Editable variables
 # -------------------------
-PYBIN="python3"            # Python executable
+PYBIN="python"            # Python executable
 TRAIN_SCRIPT="train.py" 
 PARALLEL=false             # true = run all in parallel; false = sequential
 
