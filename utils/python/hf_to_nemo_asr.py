@@ -96,8 +96,7 @@ def main():
         decoded_ds = None
 
         with open(manifest_path, 'w', encoding='utf-8') as mf:
-            for i in enumerate((dataset)):
-                ex = dataset[i]
+            for i, ex in enumerate((dataset)):
                 a = ex[audio_col]
 
                 # Determine source path
