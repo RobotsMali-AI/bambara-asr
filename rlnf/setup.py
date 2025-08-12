@@ -17,7 +17,7 @@ setup(
         "rlnf.reward",
     ],
     package_dir={
-        "rlnf": "rlnf",
+        "rlnf": ".",
         "rlnf.dataloaders": "dataloaders",
         "rlnf.ppo": "ppo",
         "rlnf.reward": "reward",
