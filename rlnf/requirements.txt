@@ -12,3 +12,4 @@ matplotlib==3.10.0
 datasets==3.6.0
 torchaudio==2.6.0
 pyyaml==6.0.2
+librosa==0.10.2.post1
