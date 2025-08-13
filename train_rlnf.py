@@ -178,8 +178,6 @@ def main() -> None:
     # Save dir
     save_dir = trn.get("save_dir", "./rlnf_runs/exp")
     os.makedirs(save_dir, exist_ok=True)
-    # Make trainer saves land in save_dir (actor_final.nemo, critic_final.ct)
-    os.chdir(save_dir)
 
     # Build components
     actor = build_actor(cfg)
