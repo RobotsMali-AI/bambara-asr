@@ -28,24 +28,15 @@ def decode_batch(
     return [h.text for h in hyps] if isinstance(hyps, list) else hyps
 
 
-def _blank_index(asr_model: EncDecCTCModel | EncDecCTCModelBPE) -> int:
-    """
-    Try to fetch the CTC blank index from NeMo model.
-    """
-    # Common NeMo CTC setup:
-    # - decoder.vocabulary is a List[str]
-    # - decoding.ctc_blank is the blank token string (often '<blank>' or '▁' is space for BPE; blank is separate)
-    if hasattr(asr_model, "decoding") and hasattr(asr_model.decoding, "ctc_blank"):
-        blank_token = asr_model.decoding.ctc_blank
-        if hasattr(asr_model, "decoder") and hasattr(asr_model.decoder, "vocabulary"):
-            vocab: List[str] = asr_model.decoder.vocabulary
-            if blank_token in vocab:
-                return vocab.index(blank_token)
-    # Fallbacks (many NeMo CTC heads use blank_id=0)
-    if hasattr(asr_model, "blank_id"):
-        return int(asr_model.blank_id)  # some models expose this
-    return 0
+def _blank_index(asr_model: EncDecCTCModel) -> int:
+    return len(asr_model.decoder.vocabulary)  # QuartzNet-style: blank is last index
 
+def _ensure_log_softmax(logits_btv: torch.Tensor) -> torch.Tensor:
+    # If already log-probs: logsumexp ≈ 0
+    lse = torch.logsumexp(logits_btv.detach(), dim=-1)
+    if torch.allclose(lse, torch.zeros_like(lse), atol=1e-3, rtol=1e-3):
+        return logits_btv
+    return logits_btv.log_softmax(dim=-1)
 
 def _encode_texts_for_ctc(
     asr_model: EncDecCTCModel | EncDecCTCModelBPE,
@@ -156,10 +147,13 @@ def collect_batch(
         out = asr_model(processed_signal=audio, processed_signal_length=audio_lens)
         # Be tolerant to output tuple structure
         if isinstance(out, (list, tuple)):
-            log_probs3d = out[0]
+            logits_or_logp3d = out[0]
             enc_len = out[1]
         else:
             raise RuntimeError("Unexpected ASR forward() return; expected (log_probs, enc_len, ...).")
+        
+        # === ensure log-probs for both decoding & CTCLoss ===
+        log_probs3d = _ensure_log_softmax(logits_or_logp3d)
 
         # Decode to text (for reward model & diagnostics)
         transcriptions = decode_batch(log_probs3d, enc_len, asr_model)

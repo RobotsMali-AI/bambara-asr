@@ -5,7 +5,7 @@ import torch.nn.functional as F
 from nemo.collections.asr.models import EncDecCTCModel, EncDecCTCModelBPE
 from rlnf.ppo.loss import PPOLoss
 from rlnf.ppo.critic_network import CriticModel
-from rlnf.ppo.rollout import _blank_index, _seq_logprob_ctc
+from rlnf.ppo.rollout import _blank_index, _seq_logprob_ctc, _ensure_log_softmax
 
 class PPOOptimizer:
     """
@@ -85,12 +85,15 @@ class PPOOptimizer:
                 # Actor forward -> current log-probs [B,T,V]
                 out = self.actor(processed_signal=audio, processed_signal_length=a_len)
                 if isinstance(out, (list, tuple)):
-                    logp3d_new = out[0]
+                    logits_or_logp3d = out[0]
                     in_len_new = out[1]
                     # Some NeMo models may slightly change time resolution; prefer fresh in_len
                     in_len_use = in_len_new
                 else:
                     raise RuntimeError("Unexpected ASR forward() return; expected (log_probs, enc_len, ...).")
+                
+                # === ensure log-probs for both decoding & CTCLoss ===
+                logp3d_new = _ensure_log_softmax(logits_or_logp3d)
 
                 logp_new = _seq_logprob_ctc(
                     logp3d_new, in_len_use, targets, t_len, self._blank_idx
