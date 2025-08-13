@@ -1,12 +1,12 @@
 training:
   seed: 42
-  device: cuda
-  precision: bf16
+  device: auto
+  precision: fp32
   clip_eps: 0.2
-  actor_lr: 1.0e-05
-  critic_lr: 0.0001
-  epochs: 3
-  K_updates: 4
+  actor_lr: 1.0e-03
+  critic_lr: 0.001
+  epochs: 5
+  K_updates: 3
   save_dir: ./rlnf_runs/exp01
   pin_memory: false
 
@@ -21,18 +21,18 @@ wandb:
 
 model:
   name: RobotsMali/stt-bm-quartznet15x5-V0
-  vocab: [' ', "'", '-', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'à', 'â', 'ç', 'è', 'é', 'ê', 'î', 'ï', 'ô', 'ù', 'û', 'ė', 'ŋ', 'œ', 'ɔ', 'ɛ', 'ɲ', '’', '<APPLAUDISSEMENTS>', '<BRUITS>', '<CHEVAUCHEMENT>', '<ECHO>', '<INCOMPRÉHENSIBLE>', '<INVOCATION>', '<MUSIQUE>', '<RIRES>', '<TOUX>', '<CRIS>', '<PLEURES>']
+  vocab: null
 
 critic:
-  hidden_dim: 256
-  layers: 3
+  hidden_dim: 128
+  layers: 2
   dropout: 0.1
 
 data:
-  train_manifest: path/to/train_rollouts.jsonl
-  valid_manifest: path/to/valid_rollouts.jsonl
+  train_manifest: path/to/train_manifest.jsonl
+  valid_manifest: path/to/valid_manfest.jsonl
   batch_size: 4
-  num_workers: 0
+  num_workers: 0 # Keep to zero if using GPU (current implemenation doesn't support parallelism)
 
 preprocessor:
   normalize: per_feature

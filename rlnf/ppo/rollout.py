@@ -1,148 +1,202 @@
+# rlnf/ppo/rollout.py
 import torch
-from typing import List, Dict
+import torch.nn as nn
+from typing import List, Dict, Tuple
 from torch.nn.utils.rnn import pad_sequence
 from sentencepiece import SentencePieceProcessor
 from nemo.collections.asr.models import EncDecCTCModel, EncDecCTCModelBPE
 from rlnf.reward.reward_model import RewardModel
 from rlnf.ppo.critic_network import CriticModel
 
+
+@torch.no_grad()
 def decode_batch(
     log_probs: torch.Tensor,
     enc_len: torch.Tensor,
     asr_model: EncDecCTCModel | EncDecCTCModelBPE,
     return_hypotheses: bool = False,
 ) -> List[str]:
-    """  
-    Decode a batch of ASR log-probabilities into text strings.  
-  
-    Officially supports EnDecCTC, and EncDecCTCBPE models.  
-  
-    Args:  
-        log_probs: Tensor of shape [B, T, V], log-probabilities.  
-        enc_len: Tensor of shape [B], lengths of each sequence in log_probs.  
-        asr_model: NeMo ASR model with .decoding attribute.  
-  
-    Returns:  
-        List of decoded strings, length B.  
     """
-    hyps = None
-    # Check if the model has a CTC decoding attribute
-    if hasattr(asr_model.decoding, 'ctc_decoder_predictions_tensor'):
+    Decode a batch of CTC log-probs [B, T, V] to text using NeMo's decoder.
+    """
+    if hasattr(asr_model.decoding, "ctc_decoder_predictions_tensor"):
         hyps = asr_model.decoding.ctc_decoder_predictions_tensor(
-            decoder_outputs=log_probs,
-            decoder_lengths=enc_len,
-            return_hypotheses=return_hypotheses
+            decoder_outputs=log_probs, decoder_lengths=enc_len, return_hypotheses=return_hypotheses
         )
     else:
-        raise AttributeError("Only CTC models are supported for the moment")
+        raise AttributeError("Only CTC models are supported for now.")
+    return [h.text for h in hyps] if isinstance(hyps, list) else hyps
 
-    # The above function returns a list of hypotheses
-    texts = [h.text for h in hyps] if isinstance(hyps, list) else hyps
-    return texts
 
-def compute_mask(enc_len: torch.Tensor, max_len: int) -> torch.Tensor:
+def _blank_index(asr_model: EncDecCTCModel | EncDecCTCModelBPE) -> int:
     """
-    Utility to create a boolean mask [B, T] from enc_len.
+    Try to fetch the CTC blank index from NeMo model.
     """
-    idx = torch.arange(max_len, device=enc_len.device).unsqueeze(0)
-    mask = idx < enc_len.unsqueeze(1)
-    return mask
+    # Common NeMo CTC setup:
+    # - decoder.vocabulary is a List[str]
+    # - decoding.ctc_blank is the blank token string (often '<blank>' or '▁' is space for BPE; blank is separate)
+    if hasattr(asr_model, "decoding") and hasattr(asr_model.decoding, "ctc_blank"):
+        blank_token = asr_model.decoding.ctc_blank
+        if hasattr(asr_model, "decoder") and hasattr(asr_model.decoder, "vocabulary"):
+            vocab: List[str] = asr_model.decoder.vocabulary
+            if blank_token in vocab:
+                return vocab.index(blank_token)
+    # Fallbacks (many NeMo CTC heads use blank_id=0)
+    if hasattr(asr_model, "blank_id"):
+        return int(asr_model.blank_id)  # some models expose this
+    return 0
 
 
+def _encode_texts_for_ctc(
+    asr_model: EncDecCTCModel | EncDecCTCModelBPE,
+    texts: List[str],
+) -> Tuple[List[List[int]], List[int]]:
+    """
+    Map decoded strings back to label indices (no blanks), consistent with actor's output vocab.
+    - For BPE models: use asr_model.tokenizer.text_to_ids()
+    - For char-level CTC: map each character via decoder.vocabulary
+    Returns (list_of_id_lists, list_of_lengths)
+    """
+    ids_list: List[List[int]] = []
+    lens_list: List[int] = []
+
+    # Prefer tokenizer if present (BPE)
+    tok = getattr(asr_model, "tokenizer", None)
+    if tok is not None:
+        for t in texts:
+            ids = tok.text_to_ids(t) if hasattr(tok, "text_to_ids") else tok.encode(t)
+            # ensure non-empty for CTC
+            if len(ids) == 0:
+                # pick a safe non-blank symbol; take index 1 if blank=0 else 0
+                blank = _blank_index(asr_model)
+                fallback = 1 if blank == 0 else 0
+                ids = [fallback]
+            ids_list.append(ids)
+            lens_list.append(len(ids))
+        return ids_list, lens_list
+
+    # Char-level fallback via vocabulary
+    if hasattr(asr_model, "decoder") and hasattr(asr_model.decoder, "vocabulary"):
+        vocab: List[str] = asr_model.decoder.vocabulary
+        sym2idx = {s: i for i, s in enumerate(vocab)}
+        for t in texts:
+            # direct per-character mapping
+            ids = []
+            for ch in t:
+                if ch in sym2idx:
+                    ids.append(sym2idx[ch])
+                # If char not in vocab, you could skip or map to a fallback; here we skip.
+            if len(ids) == 0:
+                blank = _blank_index(asr_model)
+                fallback = 1 if blank == 0 else 0
+                ids = [fallback]
+            ids_list.append(ids)
+            lens_list.append(len(ids))
+        return ids_list, lens_list
+
+    raise RuntimeError("Could not derive CTC targets: no tokenizer and no vocabulary found.")
+
+
+def _pack_targets_1d(targets_padded: torch.Tensor, lengths: torch.Tensor) -> torch.Tensor:
+    """
+    Convert a padded [B, Lmax] int tensor + [B] lengths into 1D concat targets for CTCLoss.
+    """
+    parts = []
+    for i in range(targets_padded.size(0)):
+        li = int(lengths[i].item())
+        parts.append(targets_padded[i, :li])
+    return torch.cat(parts, dim=0) if parts else torch.empty(0, dtype=torch.long, device=targets_padded.device)
+
+
+def _seq_logprob_ctc(
+    log_probs_btv: torch.Tensor,  # [B, T, V] log-probs
+    input_lengths_b: torch.Tensor,  # [B] lengths in time-steps
+    targets_padded_bl: torch.Tensor,  # [B, Lmax] label ids
+    target_lengths_b: torch.Tensor,  # [B] target lengths
+    blank_idx: int,
+) -> torch.Tensor:
+    """
+    Compute per-sample sequence log-prob: log P(y|x) using CTC forward-backward.
+    """
+    # CTCLoss expects [T, B, V] and 1D concatenated targets
+    log_probs_tbv = log_probs_btv.permute(1, 0, 2).float()
+    flat_targets_1d = _pack_targets_1d(targets_padded_bl, target_lengths_b).to(log_probs_btv.device)
+
+    ctc = nn.CTCLoss(blank=blank_idx, reduction="none", zero_infinity=True)
+    nll = ctc(log_probs_tbv, flat_targets_1d, input_lengths_b.int(), target_lengths_b.int())  # [B]
+    return -nll  # [B], sequence log-prob
+
+
+@torch.no_grad()
 def collect_batch(
     asr_model: EncDecCTCModel | EncDecCTCModelBPE,
     reward_model: RewardModel,
     critic: CriticModel,
     batch: Dict[str, torch.Tensor],
     device: torch.device,
-    sp_tokenizer: SentencePieceProcessor,
-    pad_id: int,
-) -> Dict[str, torch.Tensor]:
+    sp_tokenizer: SentencePieceProcessor,  # reward model tokenizer
+    pad_id: int,                            # reward model pad id
+) -> Dict[str, torch.Tensor | List[str]]:
     """
-    Run one on-policy rollout over a single mini-batch for PPO.
-
-    Args:
-        nemo_model: NeMo ASR model.
-        reward_model: Reward predictor (eval). Inputs: audio_feat, text_ids.
-        critic: Value network (eval): same inputs as reward_model.
-        batch: output of collate_fn with keys:
-            'audio_batch': Tensor [B, C, T]
-            'audio_lengths': Tensor [B]
-        device: compute device for model inference.
-        sp_tokenizer: SentencePieceProcessor for encoding texts.
-        pad_id: padding token ID for text sequences.
-
-    Returns:
-        dict containing:
-            audio_batch: [B, C, T] on CPU
-            audio_lengths: [B] on CPU
-            text_batch: [B, L] on CPU
-            text_lengths: [B] on CPU
-            log_probs_old: [B] on device
-            mask: [B, T] on CPU
-            greedy_ids: [B, T] on CPU
-            reward: [B] on CPU
-            values: [B] on CPU
+    One on-policy rollout over a single mini-batch for PPO.
+    Stores ONLY CPU tensors needed for PPO; avoids time-major tensors.
     """
     # Move inputs to device
-    audio = batch['audio_batch'].to(device)
-    audio_lens = batch['audio_lengths'].to(device)
+    audio = batch["audio_batch"].to(device)
+    audio_lens = batch["audio_lengths"].to(device)
 
-    # Switch all the models to eval mode
+    # Eval/no-grad rollout
     asr_model.eval()
-    reward_model.eval(); critic.eval()
+    reward_model.eval()
+    critic.eval()
 
     with torch.no_grad():
-        # assume Nemo forward returns (log_probs, enc_len, ...)
-        log_probs3d, enc_len, greedy_ids = asr_model.forward(processed_signal=audio, processed_signal_length=audio_lens)
+        # Forward actor -> CTC log-probs and encoded lengths
+        # NeMo CTC typically returns (log_probs[B,T,V], enc_len[B], greedy_ids[B,T]) or similar tuple
+        out = asr_model(processed_signal=audio, processed_signal_length=audio_lens)
+        # Be tolerant to output tuple structure
+        if isinstance(out, (list, tuple)):
+            log_probs3d = out[0]
+            enc_len = out[1]
+        else:
+            raise RuntimeError("Unexpected ASR forward() return; expected (log_probs, enc_len, ...).")
 
-        # Decode ASR hypotheses to text
+        # Decode to text (for reward model & diagnostics)
         transcriptions = decode_batch(log_probs3d, enc_len, asr_model)
 
-        # Get the mask for this Batch
-        max_len = log_probs3d.size(1)
-        mask = compute_mask(enc_len=enc_len, max_len=max_len)
-        # Move mask on device
-        mask = mask.to(device).float()
+        # === Reward model tokenization (kept as in your original design) ===
+        rm_ids = [sp_tokenizer.EncodeAsIds(t) for t in transcriptions]
+        for ids in rm_ids:
+            if len(ids) == 0:
+                ids.append(pad_id)  # keep non-empty for batching
+        rm_tensors = [torch.tensor(ids, dtype=torch.long) for ids in rm_ids]
+        rm_text_batch = pad_sequence(rm_tensors, batch_first=True, padding_value=pad_id)  # [B, L_rm]
+        rm_text_lens = torch.tensor([len(ids) for ids in rm_ids], dtype=torch.long)
 
-        # Transfrom log_probs, utterance level logits
-        log_probs = log_probs3d.gather(2, greedy_ids.unsqueeze(-1)).squeeze(-1)
-        log_probs = log_probs * mask
+        # Compute reward and values
+        reward = reward_model(audio, audio_lens, rm_text_batch.to(device), rm_text_lens.to(device)).cpu()  # [B]
+        values = critic(audio).cpu().squeeze(-1)  # [B]
 
-        log_probs_old = log_probs.sum(dim=1).detach()  # keep on device
+        # === PPO old log-prob via CTC forward-backward ===
+        # Map decoded text back to actor labels (no blanks)
+        tgt_lists, tgt_lens_list = _encode_texts_for_ctc(asr_model, transcriptions)
+        tgt_tensors = [torch.tensor(x, dtype=torch.long) for x in tgt_lists]
+        tgt_padded = pad_sequence(tgt_tensors, batch_first=True, padding_value=0).to(device)  # [B, Lmax] (pad won't be used)
+        tgt_lens = torch.tensor(tgt_lens_list, dtype=torch.long, device=device)              # [B]
 
-        # Free up memory by deleting 3D log_probs, log_probs and mask
-        del log_probs3d, log_probs
+        blank_idx = _blank_index(asr_model)
+        logp_old = _seq_logprob_ctc(log_probs3d, enc_len.to(device), tgt_padded, tgt_lens, blank_idx).detach()  # [B]
 
-        # Tokenize with SentencePiece
-        tokenized = [sp_tokenizer.EncodeAsIds(t) for t in transcriptions]
-
-        # Ensure text_ids for empty strings will not be empty, instead they will contain the pad_id
-        for text_ids in tokenized:
-            if len(text_ids) == 0:
-                text_ids.append(pad_id)
-
-        # pad to max length
-        text_tensors = [torch.tensor(ids, dtype=torch.long) for ids in tokenized]
-        text_batch = pad_sequence(text_tensors, batch_first=True, padding_value=pad_id)
-        text_lengths = torch.tensor([t.size(0) for t in text_tensors], dtype=torch.long)
-
-        # Compute rewards and values
-        reward = reward_model(audio, audio_lens, text_batch.to(device), text_lengths.to(device))
-        values = critic(audio)
-
-        reward = reward.cpu()
-        values = values.cpu()
-
-    # Prepare output dict
+    # Return CPU payload only; keep raw text too (tiny memory footprint)
     return {
-        'audio_batch': audio.cpu(),
-        'audio_lengths': audio_lens.cpu(),
-        'text_batch': text_batch.cpu(),
-        'text_lengths': text_lengths.cpu(),
-        'log_probs_old': log_probs_old,
-        'greedy_ids': greedy_ids.cpu(),
-        'mask': mask.cpu(),
-        'reward': reward,
-        'values': values,
+        "audio_batch": audio.cpu(),
+        "audio_lengths": audio_lens.cpu(),
+        "targets": tgt_padded.cpu(),          # [B, Lmax] (for PPO update)
+        "target_lengths": tgt_lens.cpu(),     # [B]
+        "input_lengths": enc_len.cpu(),       # [B] (time steps at CTC head)
+        "log_probs_old": logp_old.cpu(),      # [B]
+        "reward": reward.cpu(),               # [B]
+        "values": values.cpu(),               # [B]
+        "texts": transcriptions,              # keep raw strings for reward/debug
+        # reward model text batch is not needed after reward is computed; not stored
     }

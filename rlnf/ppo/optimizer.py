@@ -1,14 +1,15 @@
+# rlnf/ppo/optimizer.py
 from typing import Dict
 import torch
 import torch.nn.functional as F
 from nemo.collections.asr.models import EncDecCTCModel, EncDecCTCModelBPE
 from rlnf.ppo.loss import PPOLoss
 from rlnf.ppo.critic_network import CriticModel
-
+from rlnf.ppo.rollout import _blank_index, _seq_logprob_ctc
 
 class PPOOptimizer:
     """
-    Core PPO optimizer handling actor and critic updates.
+    Core PPO optimizer handling actor and critic updates with CTC sequence log-probs.
     """
     def __init__(
         self,
@@ -19,13 +20,15 @@ class PPOOptimizer:
         critic_lr: float = 1e-4,
         K_updates: int = 4,
         entropy_coef: float = 0.0,
-        device: torch.device = torch.device('cpu'),
+        device: torch.device = torch.device("cpu"),
+        amp: bool = False,
     ):
         self.actor = actor.to(device)
         self.critic = critic.to(device)
         self.device = device
         self.K_updates = K_updates
         self.entropy_coef = entropy_coef
+        self.amp = amp
 
         self.opt_actor = torch.optim.Adam(self.actor.parameters(), lr=actor_lr)
         self.opt_critic = torch.optim.Adam(self.critic.parameters(), lr=critic_lr)
@@ -33,104 +36,111 @@ class PPOOptimizer:
 
         self.actor.train()
         self.critic.train()
+        self._blank_idx = _blank_index(self.actor)
+
+        self._scaler = torch.amp.GradScaler(enabled=amp)
 
     @staticmethod
-    def compute_advantages(
-        reward: torch.Tensor,
-        values: torch.Tensor,
-    ) -> torch.Tensor:
-        """
-        Compute advantage = reward - values, then z-score it and detach.
-        """
-        adv = reward - values
+    def _normalize_adv(adv: torch.Tensor) -> torch.Tensor:
         mean = adv.mean()
-        std = adv.std(unbiased=False) + 1e-8
-        adv = (adv - mean) / std
-        return adv.detach()
-
-    def criticise(
-        self,
-        audio: torch.Tensor,
-        lengths: torch.Tensor,
-    ) -> torch.Tensor:
-        """
-        Run critic in eval mode and return value predictions [B] on self.device.
-        """
-        self.critic.eval()
-        with torch.no_grad():
-            vals = self.critic(audio.to(self.device), lengths.to(self.device))
-        return vals.squeeze(-1)
+        std = adv.std(unbiased=False)
+        return (adv - mean) / (std + 1e-8)
 
     def update(self, batch: Dict[str, torch.Tensor]) -> Dict[str, float]:
         """
         Perform K PPO updates on the provided batch.
 
-        Args:
-            batch: dict containing tensors (some on CPU):
-                'audio_batch': [B, C, T]
-                'audio_lengths': [B]
-                'text_batch': [B, L]
-                'text_lengths': [B]
-                'greedy_ids': [B, T]
-                'enc_len': [B]
-                'mask': [B, T]
-                'log_probs_old': [B]
-                'reward': [B]
-                'values': [B]
-
-        Returns:
-            Stats dict with floats: actor_loss, critic_loss, mean_value
+        Expected batch keys (CPU tensors unless noted):
+            audio_batch: [B, C, T]
+            audio_lengths: [B]
+            targets: [B, Lmax]
+            target_lengths: [B]
+            input_lengths: [B]
+            log_probs_old: [B]
+            reward: [B]
+            values: [B]
         """
-        # Move to device
-        audio = batch['audio_batch'].to(self.device)
-        a_len = batch['audio_lengths'].to(self.device)
-        greedy = batch['greedy_ids'].to(self.device)
-        mask = batch['mask'].to(self.device).float()
+        # Move once per epoch to device
+        audio = batch["audio_batch"].to(self.device, non_blocking=True)
+        a_len = batch["audio_lengths"].to(self.device, non_blocking=True)
+        targets = batch["targets"].to(self.device, non_blocking=True)
+        t_len = batch["target_lengths"].to(self.device, non_blocking=True)
+        in_len = batch["input_lengths"].to(self.device, non_blocking=True)
 
-        logp_old = batch['log_probs_old'].to(self.device)
-        reward = batch['reward'].to(self.device)
-        values = batch['values'].to(self.device)
+        logp_old = batch["log_probs_old"].to(self.device, non_blocking=True).detach()
+        reward = batch["reward"].to(self.device, non_blocking=True)
+        values_old = batch["values"].to(self.device, non_blocking=True)
 
-        # advantages
-        adv = self.compute_advantages(reward, values)
+        # Old advantages (on-policy): use stored old values for stability
+        adv = self._normalize_adv(reward - values_old).detach()
 
-        # Ensure actor and critic are in training mode
         self.actor.train()
         self.critic.train()
-        print("Before attemping forward pass, actor and critic are in training mode.")
 
         for _ in range(self.K_updates):
-            # Actor/ASR model forward
-            out = self.actor(processed_signal=audio, processed_signal_length=a_len)
-            logp_3d = out[0]
+            self.opt_actor.zero_grad(set_to_none=True)
+            self.opt_critic.zero_grad(set_to_none=True)
 
-            # gather log-probs at greedy ids
-            # logp_3d: [B, T, V], greedy: [B, T]
-            lp = logp_3d.gather(2, greedy.unsqueeze(-1)).squeeze(-1)
-            lp = lp * mask
-            logp_new = lp.sum(dim=1)
+            with torch.amp.autocast(device_type="cuda", enabled=self.amp):
+                # Actor forward -> current log-probs [B,T,V]
+                out = self.actor(processed_signal=audio, processed_signal_length=a_len)
+                if isinstance(out, (list, tuple)):
+                    logp3d_new = out[0]
+                    in_len_new = out[1]
+                    # Some NeMo models may slightly change time resolution; prefer fresh in_len
+                    in_len_use = in_len_new
+                else:
+                    raise RuntimeError("Unexpected ASR forward() return; expected (log_probs, enc_len, ...).")
 
-            # Critic forward
-            V_hat = self.critic(audio).squeeze(-1)
+                logp_new = _seq_logprob_ctc(
+                    logp3d_new, in_len_use, targets, t_len, self._blank_idx
+                )  # [B]
 
-            # Losses
-            loss_actor = self.ppo_loss(logp_old, logp_new, adv)
-            if self.entropy_coef > 0:
-                entropy = -(logp_3d.exp() * logp_3d).sum(dim=(1,2)).mean()
-                loss_actor = loss_actor - self.entropy_coef * entropy
+                # Critic forward
+                V_hat = self.critic(audio).squeeze(-1)  # [B]
 
-            loss_critic = F.mse_loss(V_hat, reward)
+                # PPO actor loss (uses old log-prob & normalized advantage)
+                loss_actor = self.ppo_loss(logp_old, logp_new, adv)
 
-            # Backprop
-            self.opt_actor.zero_grad()
-            self.opt_critic.zero_grad()
+                # Optional entropy bonus (sequence entropy is non-trivial; we use token-level entropy proxy)
+                if self.entropy_coef > 0:
+                    ent = -(logp3d_new.exp() * logp3d_new).sum(dim=(1, 2)).mean()
+                    loss_actor = loss_actor - self.entropy_coef * ent
 
-            (loss_actor + 0.5 * loss_critic).backward()
-            self.opt_actor.step()
-            self.opt_critic.step()
+                # Critic loss vs actual reward (you can also bootstrap against reward targets)
+                loss_critic = F.mse_loss(V_hat, reward)
 
-        return {
-            'actor_loss':  loss_actor.detach().cpu().item(),
-            'critic_loss': loss_critic.detach().cpu().item(),
-            'mean_value':  V_hat.detach().mean().cpu().item(),
+                # Diagnostics
+                with torch.no_grad():
+                    ratio = torch.exp(logp_new - logp_old)
+                    frac_clipped = ((ratio > 1.0 + self.ppo_loss.clip_eps) | (ratio < 1.0 - self.ppo_loss.clip_eps)).float().mean()
+                    diag = {
+                        "adv_mean": float(adv.mean().cpu()),
+                        "adv_std": float(adv.std(unbiased=False).cpu()),
+                        "ratio_mean": float(ratio.mean().cpu()),
+                        "frac_clipped": float(frac_clipped.cpu()),
+                        "logp_old_mean": float(logp_old.mean().cpu()),
+                        "logp_new_mean": float(logp_new.mean().cpu()),
+                        "reward_mean": float(reward.mean().cpu()),
+                        "V_hat_mean": float(V_hat.mean().cpu()),
+                    }
+
+            # Backprop (AMP-aware)
+            if self._scaler.is_enabled():
+                self._scaler.scale(loss_actor + 0.5 * loss_critic).backward()
+                self._scaler.step(self.opt_actor)
+                self._scaler.step(self.opt_critic)
+                self._scaler.update()
+            else:
+                (loss_actor + 0.5 * loss_critic).backward()
+                self.opt_actor.step()
+                self.opt_critic.step()
+
+        # Return last-iter losses + key diagnostics
+        out_stats = {
+            "actor_loss": float(loss_actor.detach().cpu().item()),
+            "critic_loss": float(loss_critic.detach().cpu().item()),
+            "mean_value": float(V_hat.detach().mean().cpu().item()),
         }
+        out_stats.update(diag)
+        return out_stats

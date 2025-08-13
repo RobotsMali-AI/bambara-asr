@@ -17,38 +17,12 @@ from rlnf.reward.reward_model import RewardModel
 from rlnf.ppo.critic_network import CriticModel
 from rlnf.dataloaders.reward_dataset import TOKENIZER_PAD_ID
 
+
 class RLNFTrainer:
     """
-    A trainer class for Reinforcement Learning from Nouhoum Feedback (RLNF) for Automatic Speech Recognition (ASR) models.
-    This class implements training and validation loops using Proximal Policy Optimization (PPO) to optimize the ASR model
-    based on rewards provided by a reward model.
-    Attributes:
-        asr_model (EncDecCTCModel): The ASR model to be trained.
-        reward_model (RewardModel): The reward model used to compute rewards for the ASR outputs.
-        critic_model (CriticModel): The critic model used in PPO for value estimation.
-        train_manifest (str): Path to the training manifest file containing audio file paths and metadata.
-        val_manifest (str): Path to the validation manifest file containing audio file paths and metadata.
-        sp_tokenizer (SentencePieceProcessor): SentencePiece tokenizer for tokenizing text data.
-        audio_preprocessor_config (Dict): Configuration for the audio preprocessing pipeline.
-        device (torch.device): The device (CPU or GPU) to run the training on.
-        run_name (str): Name of the training run for logging purposes. Defaults to "test-run1".
-        batch_size (int): Batch size for training and validation. Defaults to 16.
-        epochs (int): Number of training epochs. Defaults to 3.
-        K_updates (int): Number of PPO updates per batch. Defaults to 4.
-        actor_lr (float): Learning rate for the ASR model (actor). Defaults to 1e-5.
-        critic_lr (float): Learning rate for the critic model. Defaults to 1e-4.
-        clip_eps (float): Clipping epsilon for PPO. Defaults to 0.2.
-        val_every (int): Frequency (in steps) of validation during training. Defaults to 200.
-        num_workers (int): Number of workers for data loading. Defaults to 2.
-    Methods:
-        train():
-            Executes the training loop for the specified number of epochs. Logs training metrics and performs
-            validation at regular intervals.
-        validate(step: int, end_of_epoch: bool = False):
-            Performs validation on the validation dataset. Computes metrics such as Word Error Rate (WER),
-            Character Error Rate (CER), mean reward, and mean value. Logs validation metrics.
+    Trainer for RLNF (PPO on CTC sequence log-prob).
     """
-    
+
     def __init__(
         self,
         asr_model: EncDecCTCModel | EncDecCTCModelBPE,
@@ -60,7 +34,7 @@ class RLNFTrainer:
         audio_preprocessor_config: Dict,
         device: torch.device,
         wandb_logging: bool = True,
-        wandb_project: str = 'Bambara-RLNF',
+        wandb_project: str = "Bambara-RLNF",
         run_name: str = "test-run1",
         batch_size: int = 16,
         epochs: int = 3,
@@ -71,8 +45,8 @@ class RLNFTrainer:
         val_every: int = 200,
         num_workers: int = 2,
         pin_memory: bool = True,
+        amp: bool = False,  # enable if you switch to GPU
     ):
-        # save models and config
         self.asr_model = asr_model
         self.reward_model = reward_model
         self.critic_model = critic_model
@@ -82,10 +56,10 @@ class RLNFTrainer:
         self.val_manifest = val_manifest
         self.val_every = val_every
 
-        # Training DataLoader
-        train_ds = AudioDataset(manifest_path=train_manifest,
-                                preprocessor_config=audio_preprocessor_config)
-
+        # Data
+        train_ds = AudioDataset(
+            manifest_path=train_manifest, preprocessor_config=audio_preprocessor_config
+        )
         self.train_loader = DataLoader(
             train_ds,
             batch_size=batch_size,
@@ -94,9 +68,10 @@ class RLNFTrainer:
             num_workers=num_workers,
             pin_memory=pin_memory,
         )
-        # Validation DataLoader
-        val_ds = AudioDataset(manifest_path=val_manifest,
-                              preprocessor_config=audio_preprocessor_config)
+
+        val_ds = AudioDataset(
+            manifest_path=val_manifest, preprocessor_config=audio_preprocessor_config
+        )
         self.val_loader = DataLoader(
             val_ds,
             batch_size=batch_size,
@@ -105,9 +80,10 @@ class RLNFTrainer:
             num_workers=num_workers,
             pin_memory=pin_memory,
         )
+
         self.current_epoch = None
 
-        # PPO Optimizer
+        # PPO
         self.ppo = PPOOptimizer(
             actor=asr_model,
             critic=critic_model,
@@ -116,21 +92,24 @@ class RLNFTrainer:
             critic_lr=critic_lr,
             K_updates=K_updates,
             device=device,
+            amp=amp,
         )
 
-        if wandb_logging:
-            # W&B init
+        # WandB
+        self._use_wandb = wandb_logging
+        if self._use_wandb:
             wandb.init(
                 project=wandb_project,
                 name=run_name,
                 config={
-                    'batch_size': batch_size,
-                    'epochs': epochs,
-                    'K_updates': K_updates,
-                    'actor_lr': actor_lr,
-                    'critic_lr': critic_lr,
-                    'clip_eps': clip_eps,
-                }
+                    "batch_size": batch_size,
+                    "epochs": epochs,
+                    "K_updates": K_updates,
+                    "actor_lr": actor_lr,
+                    "critic_lr": critic_lr,
+                    "clip_eps": clip_eps,
+                    "amp": amp,
+                },
             )
 
     def train(self):
@@ -138,9 +117,11 @@ class RLNFTrainer:
         try:
             for epoch in range(self.epochs):
                 self.current_epoch = epoch
-                print("Starting epoch:", epoch + 1, "of", self.epochs, "with config:",
-                      wandb.config)
+                cfg = getattr(wandb, "config", {}) if self._use_wandb else {}
+                print(f"Starting epoch {epoch+1}/{self.epochs} | config: {cfg}")
+
                 for batch in self.train_loader:
+                    # === On-policy rollout (no grad, eval mode inside) ===
                     batch_dict = collect_batch(
                         batch=batch,
                         asr_model=self.ppo.actor,
@@ -148,96 +129,124 @@ class RLNFTrainer:
                         critic=self.ppo.critic,
                         sp_tokenizer=self.sp_tokenizer,
                         device=self.device,
-                        pad_id=TOKENIZER_PAD_ID
+                        pad_id=TOKENIZER_PAD_ID,
                     )
 
+                    # === PPO updates ===
                     stats = self.ppo.update(batch_dict)
-                    if wandb.run is not None:
-                        # Log training stats to WandB
-                        wandb.log({
-                            'train/actor_loss': stats['actor_loss'],
-                            'train/critic_loss': stats['critic_loss'],
-                            'train/value_mean': stats['mean_value'],
-                        }, step=global_step)
+
+                    # Logging
+                    if self._use_wandb and wandb.run is not None:
+                        wandb.log(
+                            {
+                                "train/actor_loss": stats["actor_loss"],
+                                "train/critic_loss": stats["critic_loss"],
+                                "train/value_mean": stats["mean_value"],
+                                # PPO diagnostics
+                                "train/adv_mean": stats.get("adv_mean", float("nan")),
+                                "train/adv_std": stats.get("adv_std", float("nan")),
+                                "train/ratio_mean": stats.get("ratio_mean", float("nan")),
+                                "train/frac_clipped": stats.get("frac_clipped", float("nan")),
+                                "train/logp_old_mean": stats.get("logp_old_mean", float("nan")),
+                                "train/logp_new_mean": stats.get("logp_new_mean", float("nan")),
+                                "train/reward_mean": stats.get("reward_mean", float("nan")),
+                                "train/value_hat_mean": stats.get("V_hat_mean", float("nan")),
+                            },
+                            step=global_step,
+                        )
                     else:
-                        print(f"Step {global_step}: Actor Loss: {stats['actor_loss']}, "
-                              f"Critic Loss: {stats['critic_loss']}, "
-                              f"Mean Value: {stats['mean_value']}")
+                        print(
+                            f"Step {global_step}: "
+                            f"actor={stats['actor_loss']:.4f} | "
+                            f"critic={stats['critic_loss']:.4f} | "
+                            f"V̄={stats['mean_value']:.4f} | "
+                            f"advμ={stats.get('adv_mean', float('nan')):.3f} "
+                            f"advσ={stats.get('adv_std', float('nan')):.3f} | "
+                            f"ratioμ={stats.get('ratio_mean', float('nan')):.3f} "
+                            f"clip%={100*stats.get('frac_clipped', float('nan')):.1f}"
+                        )
 
                     global_step += 1
 
-                    if global_step % self.val_every == 0:
+                    if (self.val_every > 0) and (global_step % self.val_every == 0):
                         self.validate(global_step)
 
-                # end of epoch validation
+                # end-of-epoch validation
                 self.validate(global_step, end_of_epoch=True)
-        except KeyboardInterrupt:
-            print("Interrupted by user — saving checkpoints and closing WandB.")
-        except MemoryError:
-            print("Memory error encountered — saving checkpoints and closing WandB.")
 
+        except KeyboardInterrupt:
+            print("Interrupted — saving checkpoints and closing WandB.")
+        except MemoryError:
+            print("Memory error — saving checkpoints and closing WandB.")
         finally:
-            # save final models
-            self.ppo.actor.save_to('actor_final.nemo')
-            self.critic_model.save('critic_final.ct')
+            # Save final artifacts
+            try:
+                self.ppo.actor.save_to("actor_final.nemo")
+            except Exception as e:
+                print("Could not save actor:", e)
+            try:
+                self.critic_model.save("critic_final.ct")
+            except Exception as e:
+                print("Could not save critic:", e)
             with contextlib.suppress(Exception):
-                wandb.finish()
+                if self._use_wandb:
+                    wandb.finish()
 
     def validate(self, step: int, end_of_epoch: bool = False):
-        # Put actor and critic in eval mode
+        # Eval
         self.ppo.actor.eval()
         self.ppo.critic.eval()
         with torch.no_grad():
-            hyps = self.ppo.actor.transcribe(self.val_manifest, batch_size=16)
-            # Ensure the actor stays in eval mode after transcribing
+            # WER/CER from NeMo convenience (keep batch_size small to avoid spikes)
+            hyps = self.ppo.actor.transcribe(self.val_manifest, batch_size=8)
             self.ppo.actor.eval()
+            hyp_texts = [h.text for h in hyps]
 
-            # The above line returns a list of Hypothesis objects.
-            hyps = [hyp.text for hyp in hyps]
-            # Load references from the validation manifest
+            # Load refs
             refs = []
-            with open(self.val_manifest, 'r', encoding='utf-8') as f:
+            with open(self.val_manifest, "r", encoding="utf-8") as f:
                 for line in f:
                     data = json.loads(line)
-                    refs.append(data.get('text', ''))
-            # Calculate WER
-            wer = word_error_rate(hyps, refs)
-            # Calculate CER
-            cer = word_error_rate(hyps, refs, use_cer=True)
+                    refs.append(data.get("text", ""))
 
-            mean_rewards = []
-            mean_values = []
+            wer = word_error_rate(hyp_texts, refs)
+            cer = word_error_rate(hyp_texts, refs, use_cer=True)
+
+            # Reward/Value on val set (no PPO updates here)
+            mean_rewards, mean_values = [], []
             for batch in self.val_loader:
                 val_dict = collect_batch(
-                        batch=batch,
-                        asr_model=self.ppo.actor,
-                        reward_model=self.reward_model,
-                        critic=self.ppo.critic,
-                        sp_tokenizer=self.sp_tokenizer,
-                        device=self.device,
-                        pad_id=TOKENIZER_PAD_ID
-                    )
-                mean_reward = float(val_dict['reward'].mean())
-                mean_value = float(val_dict['values'].mean())
-                mean_rewards.append(mean_reward)
-                mean_values.append(mean_value)
-            mean_reward = sum(mean_rewards) / len(mean_rewards)
-            mean_value = sum(mean_values) / len(mean_values)
+                    batch=batch,
+                    asr_model=self.ppo.actor,
+                    reward_model=self.reward_model,
+                    critic=self.ppo.critic,
+                    sp_tokenizer=self.sp_tokenizer,
+                    device=self.device,
+                    pad_id=TOKENIZER_PAD_ID,
+                )
+                mean_rewards.append(float(val_dict["reward"].mean()))
+                mean_values.append(float(val_dict["values"].mean()))
 
-        # Log validation metrics
+            mean_reward = sum(mean_rewards) / max(1, len(mean_rewards))
+            mean_value = sum(mean_values) / max(1, len(mean_values))
+
         to_log = {
-            'val/wer': wer,
-            'val/cer': cer,
-            'val/reward': mean_reward,
-            'val/value': mean_value,
+            "val/wer": wer,
+            "val/cer": cer,
+            "val/reward": mean_reward,
+            "val/value": mean_value,
         }
         if end_of_epoch:
-            to_log['epoch'] = self.current_epoch
+            to_log["epoch"] = self.current_epoch
 
-        if wandb.run is not None:
+        if self._use_wandb and wandb.run is not None:
             wandb.log(to_log, step=step)
         else:
-            print(f"Validation at step {step}: WER: {wer}, CER: {cer}, "
-                  f"Mean Reward: {mean_reward}, Mean Value: {mean_value}")
+            print(
+                f"[VAL {step}] WER: {wer:.4f} | CER: {cer:.4f} | "
+                f"Reward: {mean_reward:.4f} | Value: {mean_value:.4f}"
+            )
 
+        # back to train mode
         self.ppo.actor.train()
+        self.ppo.critic.train()
