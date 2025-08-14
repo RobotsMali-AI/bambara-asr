@@ -7,6 +7,7 @@ from rlnf.ppo.loss import PPOLoss
 from rlnf.ppo.critic_network import CriticModel
 from rlnf.ppo.rollout import _blank_index, _seq_logprob_ctc, _ensure_log_softmax
 
+
 class PPOOptimizer:
     """
     Core PPO optimizer handling actor and critic updates with CTC sequence log-probs.
@@ -38,6 +39,8 @@ class PPOOptimizer:
         self.critic.train()
         self._blank_idx = _blank_index(self.actor)
 
+        # If you're on CUDA with bf16/fp16 AMP, this will be enabled upstream when amp=True
+        # (PyTorch 2.4+ has torch.amp; older uses torch.cuda.amp — keep to your env)
         self._scaler = torch.amp.GradScaler(enabled=amp)
 
     @staticmethod
@@ -81,61 +84,108 @@ class PPOOptimizer:
             self.opt_actor.zero_grad(set_to_none=True)
             self.opt_critic.zero_grad(set_to_none=True)
 
+            # autocast only when actually on GPU & amp=True
             with torch.amp.autocast(device_type="cuda", enabled=self.amp):
-                # Actor forward -> current log-probs [B,T,V]
+                # === Actor forward ===
                 out = self.actor(processed_signal=audio, processed_signal_length=a_len)
-                if isinstance(out, (list, tuple)):
-                    logits_or_logp3d = out[0]
-                    in_len_new = out[1]
-                    # Some NeMo models may slightly change time resolution; prefer fresh in_len
-                    in_len_use = in_len_new
-                else:
-                    raise RuntimeError("Unexpected ASR forward() return; expected (log_probs, enc_len, ...).")
-                
-                # === ensure log-probs for both decoding & CTCLoss ===
+                if not isinstance(out, (list, tuple)) or len(out) < 2:
+                    raise RuntimeError("Unexpected ASR forward() return; expected (logits_or_logp, enc_len, ...).")
+                logits_or_logp3d, in_len_new = out[0], out[1]
+
+                # === Ensure log-probs every time ===
                 logp3d_new = _ensure_log_softmax(logits_or_logp3d)
 
-                logp_new = _seq_logprob_ctc(
-                    logp3d_new, in_len_use, targets, t_len, self._blank_idx
-                )  # [B]
+                # === Finite check on actor outputs (early-exit if broken) ===
+                if not torch.isfinite(logp3d_new).all():
+                    # Reduce LR and skip the step; return diagnostics so the trainer can log it.
+                    for g in self.opt_actor.param_groups:
+                        g["lr"] = max(g["lr"] * 0.5, 1e-7)
+                    return {
+                        "actor_loss": float("nan"),
+                        "critic_loss": float("nan"),
+                        "mean_value": float("nan"),
+                        "ratio_mean": float("nan"),
+                        "frac_clipped": 0.0,
+                        "adv_mean": float(adv.mean().cpu()),
+                        "adv_std": float(adv.std(unbiased=False).cpu()),
+                        "logp_old_mean": float(logp_old.mean().cpu()),
+                        "logp_new_mean": float("nan"),
+                        "reward_mean": float(reward.mean().cpu()),
+                        "V_hat_mean": float(values_old.mean().cpu()),
+                    }
+
+                # === Clamp/validate lengths and mask invalid rows ===
+                T = logp3d_new.size(1)
+                in_len_use = in_len_new.clamp(min=1, max=T).int()
+                t_len_use = t_len.clamp(min=1).int()
+                valid = (t_len_use <= in_len_use)
+
+                # Compute sequence log-prob only on valid rows; keep others ratio=1 (no learning)
+                if valid.any():
+                    logp_new_valid = _seq_logprob_ctc(
+                        logp3d_new[valid], in_len_use[valid], targets[valid], t_len_use[valid], self._blank_idx
+                    )
+                    logp_new = torch.zeros_like(logp_old)
+                    logp_new[valid] = logp_new_valid
+                    logp_new[~valid] = logp_old[~valid]
+                else:
+                    logp_new = logp_old.clone()
 
                 # Critic forward
                 V_hat = self.critic(audio).squeeze(-1)  # [B]
 
                 # PPO actor loss (uses old log-prob & normalized advantage)
-                loss_actor = self.ppo_loss(logp_old, logp_new, adv)
+                # Zero-out advantages for invalid rows to fully mask them
+                adv_use = adv * valid.to(adv.dtype)
+                loss_actor = self.ppo_loss(logp_old, logp_new, adv_use)
 
-                # Optional entropy bonus (sequence entropy is non-trivial; we use token-level entropy proxy)
+                # Optional entropy bonus
                 if self.entropy_coef > 0:
                     ent = -(logp3d_new.exp() * logp3d_new).sum(dim=(1, 2)).mean()
                     loss_actor = loss_actor - self.entropy_coef * ent
 
-                # Critic loss vs actual reward (you can also bootstrap against reward targets)
+                # Critic loss vs actual reward
                 loss_critic = F.mse_loss(V_hat, reward)
 
                 # Diagnostics
                 with torch.no_grad():
                     ratio = torch.exp(logp_new - logp_old)
-                    frac_clipped = ((ratio > 1.0 + self.ppo_loss.clip_eps) | (ratio < 1.0 - self.ppo_loss.clip_eps)).float().mean()
+                    # Ignore invalid rows for clipping stat
+                    ratio_valid = ratio[valid] if valid.any() else ratio
+                    frac_clipped = (
+                        ((ratio_valid > 1.0 + self.ppo_loss.clip_eps) | (ratio_valid < 1.0 - self.ppo_loss.clip_eps))
+                        .float()
+                        .mean()
+                        .item()
+                        if ratio_valid.numel() > 0 else 0.0
+                    )
                     diag = {
                         "adv_mean": float(adv.mean().cpu()),
                         "adv_std": float(adv.std(unbiased=False).cpu()),
                         "ratio_mean": float(ratio.mean().cpu()),
-                        "frac_clipped": float(frac_clipped.cpu()),
+                        "frac_clipped": float(frac_clipped),
                         "logp_old_mean": float(logp_old.mean().cpu()),
                         "logp_new_mean": float(logp_new.mean().cpu()),
                         "reward_mean": float(reward.mean().cpu()),
                         "V_hat_mean": float(V_hat.mean().cpu()),
                     }
 
-            # Backprop (AMP-aware)
+            # === Backprop + Grad clipping (AMP-aware) ===
+            total_loss = loss_actor + 0.5 * loss_critic
             if self._scaler.is_enabled():
-                self._scaler.scale(loss_actor + 0.5 * loss_critic).backward()
+                self._scaler.scale(total_loss).backward()
+                # Unscale before clipping
+                self._scaler.unscale_(self.opt_actor)
+                self._scaler.unscale_(self.opt_critic)
+                torch.nn.utils.clip_grad_norm_(self.actor.parameters(), 1.0)
+                torch.nn.utils.clip_grad_norm_(self.critic.parameters(), 1.0)
                 self._scaler.step(self.opt_actor)
                 self._scaler.step(self.opt_critic)
                 self._scaler.update()
             else:
-                (loss_actor + 0.5 * loss_critic).backward()
+                total_loss.backward()
+                torch.nn.utils.clip_grad_norm_(self.actor.parameters(), 1.0)
+                torch.nn.utils.clip_grad_norm_(self.critic.parameters(), 1.0)
                 self.opt_actor.step()
                 self.opt_critic.step()
 
