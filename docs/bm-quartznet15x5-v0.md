@@ -3,7 +3,7 @@ language:
 - bm
 library_name: nemo
 datasets:
-- RobotsMali/bam-asr-all
+- RobotsMali/bam-asr-early
 
 thumbnail: null
 tags:
@@ -24,8 +24,8 @@ model-index:
       name: Automatic Speech Recognition
       type: automatic-speech-recognition
     dataset:
-      name: bam-asr-all
-      type: RobotsMali/bam-asr-all
+      name: bam-asr-early
+      type: RobotsMali/bam-asr-early
       split: test
       args:
         language: bm
@@ -51,9 +51,15 @@ img {
 | [![Model size](https://img.shields.io/badge/Params-19M-lightgrey#model-badge)](#model-architecture)
 | [![Language](https://img.shields.io/badge/Language-bm-lightgrey#model-badge)](#datasets)
 
-`stt-bm-quartznet15x5` is a fine-tuned version of NVIDIA’s [`stt_fr_quartznet15x5`](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/nemo/models/stt_fr_quartznet15x5) optimized for **Bambara ASR**. This model cannot write **Punctuations and Capitalizations**, it utilizes a character encoding scheme, and transcribes text in the standard character set that is provided in the training set of bam-asr-all dataset.
+`stt-bm-quartznet15x5-V0` is a fine-tuned version of NVIDIA’s [`stt_fr_quartznet15x5`](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/nemo/models/stt_fr_quartznet15x5) optimized for **Bambara ASR**. This model cannot write **Punctuations and Capitalizations**, it utilizes a character encoding scheme, and transcribes text in the standard character set that is provided in the training set of bam-asr-all dataset.
 
 The model was fine-tuned using **NVIDIA NeMo** and is trained with **CTC (Connectionist Temporal Classification) Loss**.
+
+## **🚨 Important Note**  
+This model, along with its associated resources, is part of an **ongoing research effort**, improvements and refinements are expected in future versions. Users should be aware that:  
+
+- **The model may not generalize very well accross all speaking conditions and dialects.**  
+- **Community feedback is welcome, and contributions are encouraged to refine the model further.** 
 
 ## NVIDIA NeMo: Training
 
@@ -68,7 +74,7 @@ pip install nemo_toolkit['asr']
 ### Load Model with NeMo
 ```python
 import nemo.collections.asr as nemo_asr
-asr_model = nemo_asr.models.EncDecCTCModel.from_pretrained(model_name="RobotsMali/stt-bm-quartznet15x5")
+asr_model = nemo_asr.models.EncDecCTCModel.from_pretrained(model_name="RobotsMali/stt-bm-quartznet15x5-V0")
 ```
 
 ### Transcribe Audio
@@ -91,12 +97,12 @@ QuartzNet is a convolutional architecture, which consists of **1D time-channel s
 
 ## Training
 
-The NeMo toolkit was used to fine-tune this model for **25939 steps** over the `stt_fr_quartznet15x5` model. This model is trained with this [base config](https://github.com/diarray-hub/bambara-asr/blob/main/configs/quartznet-20m-config-v2.yaml). The full training configurations, scripts, and experimental logs are available here:
+The NeMo toolkit was used to fine-tune this model for **25939 steps** over the `stt_fr_quartznet15x5` model. This model is trained with this [base config](https://github.com/RobotsMali-AI/bambara-asr/blob/main/configs/quartznet-20m-config-v2.yaml). The full training configurations, scripts, and experimental logs are available here:
 
-🔗 [Bambara-ASR Experiments](https://github.com/diarray-hub/bambara-asr)
+🔗 [Bambara-ASR Experiments](https://github.com/RobotsMali-AI/bambara-asr)
 
 ## Dataset
-This model was fine-tuned on the [bam-asr-all](https://huggingface.co/datasets/RobotsMali/bam-asr-all) dataset, which consists of **37 hours of transcribed Bambara speech data**. The dataset is primarily derived from **Jeli-ASR dataset** (~87%).
+This model was fine-tuned on the [bam-asr-early](https://huggingface.co/datasets/RobotsMali/bam-asr-early) dataset, which consists of **37 hours of transcribed Bambara speech data**. The dataset is primarily derived from **Jeli-ASR dataset** (~87%).
 
 ## Performance
 
@@ -116,6 +122,6 @@ This model is released under the **CC-BY-4.0** license. By using this model, you
 More details are available in the **Experimental Technical Report**:
 📄 [Draft Technical Report - Weights & Biases](https://wandb.ai/yacoudiarra-wl/bam-asr-nemo-training/reports/Draft-Technical-Report-V1--VmlldzoxMTIyOTMzOA).
 
-Feel free to open a discussion on Hugging Face or [file an issue](https://github.com/diarray-hub/bambara-asr/issues) on GitHub if you have any contributions.
+Feel free to open a discussion on Hugging Face or [file an issue](https://github.com/RobotsMali-AI/bambara-asr/issues) on GitHub if you have any contributions.
 
 ---
