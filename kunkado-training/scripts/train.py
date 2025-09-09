@@ -46,6 +46,30 @@ import nemo.collections.asr as nemo_asr
 import nemo.lightning as nl
 from nemo.lightning import AutoResume
 
+from omegaconf import open_dict
+
+def prefill_manifests_hard(model, data_cfg):
+    """
+    Overwrite train/val/test manifest_filepath on model.cfg without reading them.
+    This avoids OmegaConf MissingMandatoryValue on `???`.
+    """
+    mcfg = model.cfg
+    with open_dict(mcfg):  # temporarily disable struct to allow writes
+        # Ensure the dataset sections exist (they should, but be defensive)
+        if not hasattr(mcfg, "train_ds"):
+            mcfg.train_ds = {}
+        if not hasattr(mcfg, "validation_ds"):
+            mcfg.validation_ds = {}
+        if not hasattr(mcfg, "test_ds"):
+            mcfg.test_ds = {}
+
+        # WRITE ONLY — no getattr/select/is_missing on manifest_filepath
+        mcfg.train_ds["manifest_filepath"]      = data_cfg.train.manifest_filepath
+        mcfg.validation_ds["manifest_filepath"] = data_cfg.valid.manifest_filepath
+        mcfg.test_ds["manifest_filepath"]       = data_cfg.test.manifest_filepath
+
+    # Reattach (ModelPT persists cfg snapshots internally)
+    model.cfg = mcfg
 
 # -----------------------------
 # Helpers
@@ -95,7 +119,7 @@ def maybe_set_aux_ctc_weight(model: nemo_asr.models.ASRModel, weight: float | No
         return
     aux_cfg = cfg.aux_ctc
     if hasattr(aux_cfg, "ctc_loss_weight"):
-        aux_cfg.ctc_loss_weight = float(weight)
+        model.cfg.aux_ctc.ctc_loss_weight = float(weight)
 
 
 def load_model_from_config(config: Any) -> nemo_asr.models.ASRModel:
@@ -111,8 +135,8 @@ def load_model_from_config(config: Any) -> nemo_asr.models.ASRModel:
 
         # Optionally change vocabulary/tokenizer for first training only
         # Prefer tokenizer spec if provided; otherwise allow char-level vocab
-        has_tok_dir = hasattr(config, "tokenizer") and hasattr(config.tokenizer, "path") and hasattr(config.tokenizer, "type")
-        has_char_vocab = hasattr(config.tokenizer, "vocab") and isinstance(config.tokenizer.vocab, list)
+        has_tok_dir = hasattr(config, "tokenizer") and config.tokenizer.type != "char"
+        has_char_vocab = hasattr(config, "tokenizer") and config.tokenizer.type == "char"
 
         if has_tok_dir:
             model.change_vocabulary(
@@ -120,7 +144,9 @@ def load_model_from_config(config: Any) -> nemo_asr.models.ASRModel:
                 new_tokenizer_type=config.tokenizer.type,
             )
         elif has_char_vocab:
-            model.change_vocabulary(new_vocabulary=list(config.tokenizer.vocab))
+            print(f"***Changing Vocab to output: {config.tokenizer.vocab}***")
+            vocab = config.tokenizer.vocab
+            model.change_vocabulary(new_vocabulary=list(vocab))
 
     else:
         # Continued training: restore from local checkpoint without changing vocab
@@ -130,7 +156,12 @@ def load_model_from_config(config: Any) -> nemo_asr.models.ASRModel:
             raise ValueError("config.model.name is required to be an archive file when first_training=False")
 
         model = nemo_asr.models.ASRModel.restore_from(restore_path=restore_path)
-
+        ## Comment this section once you're done testing the hypothesis with soloba-tdt and soloni. change to "greedy_batch" if unsuccessful
+        # decoding_cfg = model.cfg.decoding
+        # decoding_cfg.strategy = "greedy_batch"
+        # decoding_cfg.beam.beam_size = 8
+        # decoding_cfg.beam.return_best_hypothesis = True
+        # model.change_decoding_strategy(decoding_cfg=decoding_cfg)
     return model
 
 
@@ -184,6 +215,9 @@ def main() -> None:
     # Optimizer
     model.setup_optimization(optim_config=config.optim)
 
+    # >>> fix MISSING manifests here <<<
+    prefill_manifests_hard(model, config.data_loaders)
+
     # Datasets
     model.setup_training_data(train_data_config=config.data_loaders.train)
     model.setup_validation_data(val_data_config=config.data_loaders.valid)
@@ -195,25 +229,27 @@ def main() -> None:
 
     # Logger & callbacks
     wandb_logger = WandbLogger(project=config.wandb.project, name=config.wandb.name)
+    monitor_metric = "val_wer" # Change this
 
     checkpoint_callback = ModelCheckpoint(
         dirpath=config.training.checkpoint_dir,
         save_weights_only=True,
         save_last=True,
-        monitor="val_wer",
+        monitor=monitor_metric,
         mode="min",
         save_top_k=config.training.save_top_k,
     )
 
     early_stopping_callback = EarlyStopping(
-        monitor="val_wer",
+        monitor=monitor_metric,
         mode="min",
         patience=config.training.patience,
         verbose=True,
     )
-
+    # Remember to check the load model function
+    devices = [0, 1] # Change this
     trainer = nl.Trainer(
-        devices=1,
+        devices=devices,
         accelerator="gpu",
         precision=config.training.precision,
         max_epochs=config.training.epochs,
@@ -235,17 +271,11 @@ def main() -> None:
     # Train
     try:
         trainer.fit(model)
-    except Exception:
-        print("Training interrupted, finishing logging...")
-        wandb.finish()
+    except Exception as e:
+        print(f"Training interrupted, finishing logging..., due to exception {e}")
 
     # Save
     model.save_to(config.training.save_model_path)
-
-    # Test
-    if hasattr(model.cfg, "test_ds") and getattr(model.cfg.test_ds, "manifest_filepath", None):
-        if model.prepare_test(trainer):
-            trainer.test(model)
 
     wandb.finish()
     print(f"Done training. NeMo model saved to: {config.training.save_model_path}")
