@@ -85,7 +85,7 @@ def main():
 
         split_dir = audio_base / split
         ensure_dir(split_dir)
-        manifest_path = save_dir / f"{split}-manifest.jsonl"
+        manifest_path = save_dir / f"original-{split}-manifest.jsonl"
 
         # Detect whether audio is currently decode=False on this split
         decode_flag = isinstance(dataset.features[audio_col], Audio) and dataset.features[audio_col].decode
@@ -120,14 +120,12 @@ def main():
                 if need_copy:
                     if args.overwrite or not dest_path.exists():
                         shutil.copy(src_path, dest_path)
-
                 elif "array" in a and "sampling_rate" in a:
                     arr = a['array']
                     sr = a['sampling_rate']
                     ensure_dir(dest_path.parent)
                     if args.overwrite or not dest_path.exists():
                         sf.write(str(dest_path), arr, sr)
-
                 else:
                     if not args.decode_fallback:
                         raise RuntimeError(
@@ -145,6 +143,8 @@ def main():
                     ensure_dir(dest_path.parent)
                     if args.overwrite or not dest_path.exists():
                         sf.write(str(dest_path), arr, sr)
+                    else:
+                        print("file already exists. Adding entry to manifest")
 
                 # Build manifest entry
                 entry = {
