@@ -120,7 +120,7 @@ def main():
                 if need_copy:
                     if args.overwrite or not dest_path.exists():
                         shutil.copy(src_path, dest_path)
-                elif "array" in a and "sampling_rate" in a:
+                elif isinstance(a, (DatasetDict, dict)) and "array" in a and "sampling_rate" in a:
                     arr = a['array']
                     sr = a['sampling_rate']
                     ensure_dir(dest_path.parent)
