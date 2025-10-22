@@ -1,8 +1,6 @@
 Cython==3.0.11
 packaging==24.2
-nemo_toolkit==2.3.0
-megatron-core==0.9.0
-pydub==0.25.1
+nemo_toolkit[asr]==2.5.0
 wandb==0.19.4
 bambara-normalizer==1.0.0
 pyyaml==6.0.2
