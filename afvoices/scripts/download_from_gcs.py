@@ -7,6 +7,15 @@ from tqdm import tqdm
 from google.cloud import storage
 import requests
 import urllib.parse
+import threading
+
+# Thread-local variable to store one client per thread
+thread_local = threading.local()
+
+def get_client():
+    if not hasattr(thread_local, "client"):
+        thread_local.client = storage.Client()
+    return thread_local.client
 
 def normalize_path(path: str) -> str:
     """Normalize different Firebase/GCS audio paths into a consistent form."""
@@ -40,9 +49,8 @@ def unique_path(base_path):
         suffix = chr(ord(suffix) + 1)
     return f"{base}_{suffix}{ext}"
 
-def download_from_gcs(uri, out_path):
+def download_from_gcs(client, uri, out_path):
     """Download a file from Google Cloud Storage."""
-    client = storage.Client()
     match = re.match(r'gs://([^/]+)/(.+)', uri)
     if not match:
         raise ValueError(f"Invalid GCS URI: {uri}")
@@ -63,8 +71,8 @@ def download_audio(entry, out_dir):
     """Download a single entry and return updated entry."""
     uri = entry["audio_filepath"]
     duration = entry.get("duration", None)
-    text_key = "text" if "text" in entry else "semi-label-v1"
-    text = entry.get("text", entry.get("semi-label", ""))
+    text_key = "text" if "text" in entry else "semi-label"
+    text = entry.get("text", "")
 
     filename = sanitize_filename(normalize_path(uri))
     local_path = os.path.join(out_dir, filename)
@@ -72,7 +80,8 @@ def download_audio(entry, out_dir):
 
     try:
         if uri.startswith("gs://"):
-            download_from_gcs(uri, local_path)
+            client = get_client()
+            download_from_gcs(client, uri, local_path)
         elif uri.startswith("http"):
             download_from_http(uri, local_path)
         else:

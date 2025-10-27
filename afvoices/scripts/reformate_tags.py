@@ -40,7 +40,7 @@ def main():
     for entry in manifest:
         new_entry = dict(entry)
         if "text" in new_entry and isinstance(new_entry["text"], str):
-            new_entry["text"] = normalize_tags(new_entry["text"])
+            new_entry["text"] = normalize_tags(new_entry["text"]).replace("?", "UNINTELLIGIBLE")
         normalized.append(new_entry)
 
     write_manifest(out_path, normalized)

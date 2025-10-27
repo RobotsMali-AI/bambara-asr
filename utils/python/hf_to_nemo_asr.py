@@ -148,7 +148,7 @@ def main():
 
                 # Build manifest entry
                 entry = {
-                    'audio_filepath': str(dest_rel),
+                    'audio_filepath': str(dest_path),
                 }
 
                 # duration: prefer explicit key in example, else audio dict duration
@@ -159,12 +159,13 @@ def main():
                     entry['duration'] = float(dur)
 
                 # text field
-                if args.text_field in ex:
+                if args.text_field in ex and ex[args.text_field]:
                     entry['text'] = ex[args.text_field]
                 else:
                     # Keep going but warn once
                     if i == 0:
                         print(f"[warn] text field '{args.text_field}' not found; leaving out 'text' in manifest.")
+                    continue
 
                 write_manifest_line(mf, entry)
 

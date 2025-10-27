@@ -6,8 +6,8 @@ def main():
     parser = argparse.ArgumentParser(description="Create train and test split from downloaded manifest.")
     parser.add_argument("manifest", type=str, help="Path to the downloaded manifest file.")
     parser.add_argument("--test-size", type=float, default=3., help="Proportion of the dataset to separate into test split (in hours).")
-    parser.add_argument("--train-manifest", type=str, default="train_manifest.jsonl", help="Output path for the training manifest.")
-    parser.add_argument("--test-manifest", type=str, default="test_manifest.jsonl", help="Output path for the test manifest.")
+    parser.add_argument("--train-manifest", type=str, default="train-manifest.jsonl", help="Output path for the training manifest.")
+    parser.add_argument("--test-manifest", type=str, default="test-manifest.jsonl", help="Output path for the test manifest.")
     args = parser.parse_args()
     
     entries = [json.loads(line) for line in open(args.manifest, "r", encoding="utf-8")]
