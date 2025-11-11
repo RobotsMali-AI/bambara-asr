@@ -80,7 +80,7 @@ class RewardConfig(PretrainedConfig):
        
         base_cfg = {
             "n_mel": 80,
-            "vocab_size": 1024,
+            "vocab_size": 2048,
             "sample_rate" : 16_000,
             "n_fft" : 1024,
             "hop_length" : 256,
