@@ -138,7 +138,9 @@ class RewardModelProcessor(ProcessorMixin):
         return feats
 
 
-    def __call__(self, audios: list, texts: list, truncation = False, return_attention_mask = True, return_tensors = "pt", do_normalize = True, padding = True, sampling_rate: int = 16_000):
+    def __call__(self, audios: list, texts: list, truncation = False, 
+                 return_attention_mask = True, return_tensors = "pt", do_normalize = True, 
+                 padding = True, sampling_rate: int = 16_000):
         """
         Process a batch of audio files + text strings
         Returns a dict containing:

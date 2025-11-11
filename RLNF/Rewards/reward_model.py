@@ -5,6 +5,7 @@ from transformers import PreTrainedModel
 from .reward_config import RewardConfig
 from transformers.modeling_outputs import SequenceClassifierOutput
 from ..utils.dot_dict import DotDict
+import torch.nn.functional as F 
 
 
 def masked_mean_pooling(outputs: torch.Tensor, mask: torch.Tensor) -> torch.Tensor:
@@ -34,26 +35,20 @@ class RewardModel(PreTrainedModel):
         
         self.cfg = DotDict(config.pretrained_config)
         
-        self.use_pre = config.use_pre
-        
-
         # -------- Audio Encoder --------
-        if self.use_pre == "default":
-            
-            convs = []
-            in_ch = self.cfg.n_mel
-            for _ in range(self.cfg.audio_conv_layers):
-                convs += [
-                    nn.Conv1d(in_ch, self.cfg.audio_conv_channels, kernel_size=self.cfg.kernel_size, stride=self.cfg.stride, padding=self.cfg.padding),
-                    nn.BatchNorm1d(self.cfg.audio_conv_channels),
-                    nn.ReLU(inplace=True),
-                ]
-                in_ch = self.cfg.audio_conv_channels
+        convs = []
+        in_ch = self.cfg.n_mel
+        for _ in range(self.cfg.audio_conv_layers):
+            convs += [
+                nn.Conv1d(in_ch, self.cfg.audio_conv_channels, kernel_size=self.cfg.kernel_size, stride=self.cfg.stride, padding=self.cfg.padding),
+                nn.BatchNorm1d(self.cfg.audio_conv_channels),
+                nn.ReLU(inplace=True),
+            ]
+            in_ch = self.cfg.audio_conv_channels
+             
                 
-                
-            self.audio_encoder = nn.Sequential(*convs)
-            
-            audio_dim = self.cfg.audio_conv_channels
+        self.audio_encoder = nn.Sequential(*convs)
+        audio_dim = self.cfg.audio_conv_channels
 
 
         # -------- Text Encoder --------
@@ -82,14 +77,21 @@ class RewardModel(PreTrainedModel):
             nn.Sigmoid(),
         )
 
-    def forward(self, audio, audio_attention_mask, text, text_attention_mask, labels=None, score=None):
+    def forward(self, audio, audio_attention_mask, text, text_attention_mask, labels=None, score=None, **kwargs):
         
         
         # Audio encoder
         out = self.audio_encoder(audio)
         out_t = out.transpose(1,2)
-        audio_enc = masked_mean_pooling(out_t, audio_attention_mask)
         
+        if audio_attention_mask.size(1) != out_t.size(1):
+            audio_attention_mask = F.interpolate(
+                audio_attention_mask.unsqueeze(1).float(),
+                size=out_t.size(1),
+                mode="nearest"
+            ).squeeze(1)
+            
+        audio_enc = masked_mean_pooling(out_t, audio_attention_mask)
         
         # -------- Text encoder  -------- 
         emb = self.embedding(text)

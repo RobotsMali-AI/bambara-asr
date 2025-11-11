@@ -14,10 +14,8 @@ class RewardFeatureExtractor(WhisperFeatureExtractor) :
         dither: float = 0.0,
         return_attention_mask: bool = True,
         **kwargs,
-    ):
-        
-        
-        super().__init__(feature_size=feature_size, 
+    ):  
+         super().__init__(feature_size=feature_size, 
                          sampling_rate = sampling_rate,
                          chunk_length = chunk_length, n_fft = n_fft, 
                          padding_value = padding_value, 
@@ -27,8 +25,6 @@ class RewardFeatureExtractor(WhisperFeatureExtractor) :
                         **kwargs)
         
         
-        
-
 AutoFeatureExtractor.register("RewardFeatureExtractor", RewardFeatureExtractor)
 
         
