@@ -12,7 +12,7 @@ class CriticModel(RewardModel) :
         
         self.head = self.build_head(self.combined_dim)
         
-    def forward(self, audio, audio_attention_mask, labels=None, reward=None):
+    def forward(self, audio, audio_attention_mask, labels=None, reward=None, **kwargs):
         
         out = self.audio_encoder(audio)
         out_t = out.transpose(1,2)
