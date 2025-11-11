@@ -72,10 +72,7 @@ collator_eval = RewardDataCollator(processor, augment=False ) #here we don't
 reward_model = RewardModel(config=config) #initialize our reward model.
 
 #make your training args
-training_args = TrainingArguments(
-    do_eval=True,
-    per_device_eval_batch_size=4,
-    per_device_train_batch_size=4) 
+training_args = TrainingArguments(...) 
 
 
 #custom class to avoid data augmentation on eval dataset 
