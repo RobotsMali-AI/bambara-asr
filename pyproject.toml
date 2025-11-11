@@ -14,7 +14,7 @@ dependencies = [
     "torch",
     "torchaudio",
     "datasets==3.3.2",
-    "nemo[asr]",
+    "nemo_toolkit[asr]",
     "transformers",
     "numpy",
 ]
