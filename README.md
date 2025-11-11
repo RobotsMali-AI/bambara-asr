@@ -28,10 +28,47 @@ pip install git+https://github.com/diarray-hub/bambara-asr.git@rlnf-v2-gpu
 ```
 
 ## How to use this package:
-coming soon....
+**want to train a reward model : [train_reward_model.py]()**
 
- 
----
+**want to test the reward model**
 
-*README files for individual modules are provided in their respective folders. Start with **`rlnf/README.md`** for detailed instructions on the RLHF toolkit.*
+```python
+import torch
+from RLNF.Rewards.reward_config import RewardConfig
+from RLNF.Rewards.reward_model import RewardModel
+from RLNF.Rewards.reward_processor import RewardModelProcessor
+
+audios = ["1.wav", "2.wav"]
+texts = ["kelen", "fila."]
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+processor : RewardModelProcessor = RewardModelProcessor.from_pretrained("RobotsMali/reward-model")
+model : RewardModel = RewardModel.from_pretrained("RobotsMali/reward-model")
+
+model.eval()
+model.to(device)
+    
+out = processor(audios=audios, texts=texts)    
+out = {k: v.to(device) if torch.is_tensor(v) else v for k, v in out.items()}
+#out = dict(list(out.items())[:-2])
+
+with torch.no_grad() :
+  preds = model(**out).logits
+    
+    
+for i, (t, val) in enumerate(zip(texts, preds)):
+  print(f"Audio : {audios[i]:<10} | Text: {t:<10} | Score: {val.item() * 100:.4f}")
+
+```
+**want to train a RLNF model : [train_rlnf_model.py]()**
+
+coming soon......
+
+
+**want to test the RLNF model**
+
+coming soon......
+
+
 
