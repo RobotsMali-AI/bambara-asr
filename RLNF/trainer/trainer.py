@@ -171,10 +171,12 @@ class RLNFTrainer:
                     pbar.set_postfix({
                         "actor_loss": f"{stats['actor_loss']:.4f}",
                         "critic_loss": f"{stats['critic_loss']:.4f}",
-                        "V̄": f"{stats['mean_value']:.4f}",
+                        "V": f"{stats['mean_value']:.4f}",
                         "advμ": f"{stats.get('adv_mean', float('nan')):.3f}",
                         "clip%": f"{100*stats.get('frac_clipped', float('nan')):.1f}",
-                        "reward" : f"{stats.get('reward_mean', float('nan')):.4f}"
+                        "reward" : f"{stats.get('reward_mean', float('nan')):.4f}",
+                        "adv_mean": f"{stats.get('adv_mean', float('nan')):.4f}",
+                        "adv_std": f"{stats.get('adv_std', float('nan')):.4f}",
                         
                     })
 
