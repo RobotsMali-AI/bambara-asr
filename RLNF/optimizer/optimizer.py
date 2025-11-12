@@ -79,6 +79,9 @@ class PPOOptimizer:
 
         # Old advantages (on-policy): use stored old values for stability
         adv = self._normalize_adv(reward - values_old).detach()
+        adv_ = reward - values_old
+        print(f"adv : {adv_}")
+        adv = adv_.mean()
 
         self.actor.train()
         self.critic.train()
