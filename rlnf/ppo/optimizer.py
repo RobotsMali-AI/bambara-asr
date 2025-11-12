@@ -75,7 +75,9 @@ class PPOOptimizer:
         values_old = batch["values"].to(self.device, non_blocking=True)
 
         # Old advantages (on-policy): use stored old values for stability
-        adv = self._normalize_adv(reward - values_old).detach()
+        #adv = self._normalize_adv(reward - values_old).detach()
+        adv_ = reward - values_old
+        adv = adv_.mean()
 
         self.actor.train()
         self.critic.train()
