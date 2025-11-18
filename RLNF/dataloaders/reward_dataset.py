@@ -82,7 +82,7 @@ class RewardDataCollator:
         mels, texts, scores = [], [], []
 
         for x in batch:
-            mel = torch.tensor(x["audio"]["array"], dtype=torch.float)
+            mel = torch.tensor(x["audio"]["array"], dtype=torch.float32)
             text = x["text"]
 
             score = x.get("score")
@@ -106,16 +106,11 @@ class RewardDataCollator:
 
         batch_dict = self.processor(
             mels,
-            texts,
-            truncation=False,
-            padding=True,
-            return_attention_mask=True,
-            return_tensors="pt",
-            do_normalize=True,
+            texts
         )
 
         if scores and all( s is not None for s in scores) :
-            batch_dict["score"] = torch.tensor(scores, dtype=torch.float)
+            batch_dict["score"] = torch.tensor(scores, dtype=torch.float32)
             batch_dict["labels"] = batch_dict["score"]
             
         return batch_dict

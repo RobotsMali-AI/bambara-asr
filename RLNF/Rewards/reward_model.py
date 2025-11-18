@@ -37,7 +37,7 @@ class RewardModel(PreTrainedModel):
         
         # -------- Audio Encoder --------
         convs = []
-        in_ch = self.cfg.n_mel
+        in_ch = 64 #self.cfg.n_mel
         for _ in range(self.cfg.audio_conv_layers):
             convs += [
                 nn.Conv1d(in_ch, self.cfg.audio_conv_channels, kernel_size=self.cfg.kernel_size, stride=self.cfg.stride, padding=self.cfg.padding),
@@ -47,7 +47,7 @@ class RewardModel(PreTrainedModel):
             in_ch = self.cfg.audio_conv_channels
              
                 
-        self.audio_encoder = nn.Sequential(*convs)
+        self.audio_encoder = nn.Sequential(*convs, nn.AdaptiveAvgPool1d(1))
         audio_dim = self.cfg.audio_conv_channels
 
 
@@ -77,22 +77,12 @@ class RewardModel(PreTrainedModel):
             nn.Sigmoid(),
         )
 
-    def forward(self, audio, audio_attention_mask, text, text_attention_mask, labels=None, score=None, **kwargs):
+    def forward(self, audio, audio_len, text, text_attention_mask, labels=None, score=None, **kwargs):
         
         
         # Audio encoder
-        out = self.audio_encoder(audio)
-        out_t = out.transpose(1,2)
-        
-        if audio_attention_mask.size(1) != out_t.size(1):
-            audio_attention_mask = F.interpolate(
-                audio_attention_mask.unsqueeze(1).float(),
-                size=out_t.size(1),
-                mode="nearest"
-            ).squeeze(1)
-            
-        audio_enc = masked_mean_pooling(out_t, audio_attention_mask)
-        
+        audio_enc = self.audio_encoder(audio).squeeze(-1)
+
         # -------- Text encoder  -------- 
         emb = self.embedding(text)
         lengths = text_attention_mask.sum(dim=1).cpu()
@@ -104,6 +94,7 @@ class RewardModel(PreTrainedModel):
 
         # -------- Combine -------- 
         combined = torch.cat([audio_enc, text_enc], dim=1)
+        
         logits = self.head(combined).squeeze(-1)
         
         # -------- Loss --------

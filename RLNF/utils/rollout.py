@@ -202,7 +202,7 @@ def collect_batch(
         tgt_lens = torch.tensor(tgt_lens_list, dtype=torch.long, device=device)              # [B]
 
         blank_idx = _blank_index(asr_model)
-        logp_old = _seq_logprob_ctc(log_probs3d, enc_len.to(device), tgt_padded, tgt_lens, blank_idx).detach()  # [B]
+        logp_old = _seq_logprob_ctc(log_probs3d.to(device), enc_len.to(device), tgt_padded, tgt_lens.to, blank_idx).detach()  # [B]
 
     # Return CPU payload only; keep raw text too (tiny memory footprint)
     return {

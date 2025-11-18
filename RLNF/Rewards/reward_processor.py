@@ -32,9 +32,9 @@ class RewardModelProcessor(ProcessorMixin):
         self.feature_extractor = feature_extractor
         self.tokenizer = tokenizer
         
-        self.sample_rate = self.feature_extractor.sampling_rate
+        self.sample_rate = self.feature_extractor.model.preprocessor._sample_rate
     
-        self.audio_fn = self._default_audio_pipeline
+        self.audio_fn = self._nemo_audio_pipeline
 
 
     def _load_waveform(self, wav_input: Union[str, np.ndarray, torch.Tensor]) -> torch.Tensor:
@@ -84,63 +84,9 @@ class RewardModelProcessor(ProcessorMixin):
         lengths = torch.tensor(lengths, dtype=torch.long)
         return padded, lengths
 
-    def _default_audio_pipeline(
-        self,
-        audios: Union[
-            str,
-            np.ndarray,
-            torch.Tensor,
-            List[str],
-            List[np.ndarray],
-            List[torch.Tensor],
-        ]
-    ):
-        """
-        Converts one or multiple waveforms (path, numpy array, or tensor)
-        into log-Mel spectrograms and pads them to the same length.
 
-        Returns:
-            (padded_mels, lengths)
-            - padded_mels: torch.Tensor of shape [B, n_mel, T]
-            - lengths: torch.Tensor of shape [B] with original time lengths
-
-        Examples >>
-        >>> proc = RewardModelProcessor()
-        >>> mel, len_ = proc._default_audio_pipeline("audio.wav")
-        >>> mel.shape
-        torch.Size([1, 80, T])
-
-        >>> mel, len_ = proc._default_audio_pipeline(["a.wav", "b.wav"])
-        >>> mel.shape
-        torch.Size([2, 80, Tmax])
-
-        >>> x = np.random.randn(16000)
-        >>> mel, len_ = proc._default_audio_pipeline(x)
-        >>> mel.shape
-        torch.Size([1, 80, T])
-        """
-
-        # Ensure input is a list for unified processing
-        if not isinstance(audios, (list, tuple)):
-            audios = [audios]
-            
-        feats = []
-        for wav_input in audios:
-            wav = self._load_waveform(wav_input)
-            if isinstance(wav, torch.Tensor):
-                wav = wav.squeeze().cpu().numpy()
-            else:
-                wav = np.asarray(wav, dtype=np.float32).squeeze()
-            feats.append(wav)
-
-            
-
-        return feats
-
-
-    def __call__(self, audios: list, texts: list, truncation = False, 
-                 return_attention_mask = True, return_tensors = "pt", do_normalize = True, 
-                 padding = True, sampling_rate: int = 16_000):
+    def __call__(self, audios: list, texts: list):
+        
         """
         Process a batch of audio files + text strings
         Returns a dict containing:
@@ -150,24 +96,20 @@ class RewardModelProcessor(ProcessorMixin):
           - nemo_audio and nemo_audio_length : for nemo model
         """
         
-        #if self.use_pre == "default":
-        audio_feats = self.audio_fn(audios)
+
+        audio_feats, audio_len = self.audio_fn(audios)
         
-        audio_batch = self.feature_extractor(audio_feats, truncation=truncation, 
-                                       return_attention_mask=return_attention_mask, 
-                                       return_tensors=return_tensors,padding=padding,
-                                       do_normalize=do_normalize, sampling_rate=self.sample_rate)
+        audio_batch, audio_batch_len = self.feature_extractor(audio_feats, audio_len)
         
-        
-        nemo_audio, nemo_audio_len = self._nemo_audio_pipeline(audios)
         
         text_batch = self.tokenizer(texts, padding=True, return_tensors="pt", return_attention_mask=True)
+        
+        #device = "cuda" if torch.cuda.is_available() else "cpu"
+    
         return {
-            "audio": audio_batch["input_features"],
-            "audio_attention_mask": audio_batch["attention_mask"],
+            "audio": audio_batch , #.to(self.feature_extractor.model.device),
+            "audio_len": audio_batch_len , #.to(self.feature_extractor.model.device),
             "text": text_batch["input_ids"],
             "text_attention_mask": text_batch["attention_mask"],
-            "nemo_audio": nemo_audio,
-            "nemo_audio_len" : nemo_audio_len
         }
         

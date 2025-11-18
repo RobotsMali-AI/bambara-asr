@@ -1,30 +1,35 @@
 
-from transformers import WhisperFeatureExtractor, AutoFeatureExtractor
+from typing import Tuple
+from torch import Tensor
+import torch
+from transformers import AutoFeatureExtractor
+from nemo.collections.asr.models import EncDecCTCModel, EncDecCTCModelBPE
 
-class RewardFeatureExtractor(WhisperFeatureExtractor) :
+class RewardFeatureExtractor :
         
-     def __init__(
-        self,
-        feature_size: int = 80,
-        sampling_rate: int = 16000,
-        n_fft: int = 1024,
-        hop_length: int = 160,
-        chunk_length: int = 30,
-        padding_value: float = 0.0,
-        dither: float = 0.0,
-        return_attention_mask: bool = True,
-        **kwargs,
-    ):  
-         super().__init__(feature_size=feature_size, 
-                         sampling_rate = sampling_rate,
-                         chunk_length = chunk_length, n_fft = n_fft, 
-                         padding_value = padding_value, 
-                         dither=dither, 
-                         hop_length=hop_length,
-                        return_attention_mask = return_attention_mask, 
-                        **kwargs)
-        
-        
+     def __init__(self, asr_model : EncDecCTCModelBPE | EncDecCTCModel): 
+          
+          self.model = asr_model
+          
+          
+     def __call__(self, audios: Tensor, audios_lens : Tensor) -> Tuple[Tensor, Tensor]:
+          
+          """
+          audios: (B, T)
+          audios_lens: (B,)
+          return: (features, features_lens)
+          """
+          
+          #device = self.model.device #"cuda" if torch.cuda.is_available() else "cpu"
+          device = audios.device
+          self.model.preprocessor.featurizer.fb = (
+               self.model.preprocessor.featurizer.fb.to(device)
+          )
+                    
+          return self.model.preprocessor(input_signal=audios, length=audios_lens)
+          
+
+      
 AutoFeatureExtractor.register("RewardFeatureExtractor", RewardFeatureExtractor)
 
         
