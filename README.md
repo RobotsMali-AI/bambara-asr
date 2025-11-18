@@ -67,7 +67,7 @@ for i, (t, val) in enumerate(zip(texts, preds)):
 
 
 ```
-**want to train a RLNF model : [train_rlnf_model.py]()**
+**want to train a RLNF model : coming soon....**
 
 coming soon......
 
@@ -75,6 +75,7 @@ coming soon......
 **want to test the RLNF model**
 
 coming soon......
+
 
 
 
