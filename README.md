@@ -36,6 +36,8 @@ pip install git+https://github.com/diarray-hub/bambara-asr.git@rlnf-v2-gpu
 import torch
 from RLNF.Rewards.reward_model import RewardModel
 from RLNF.Rewards.reward_processor import RewardModelProcessor
+from RLNF.Rewards.reward_feature_extraction import RewardFeatureExtractor
+from transformers import T5Tokenizer
 from nemo.collections.asr.models import EncDecCTCModel
 
 audios = ["1.wav", "2.wav"]
@@ -75,6 +77,7 @@ coming soon......
 **want to test the RLNF model**
 
 coming soon......
+
 
 
 
