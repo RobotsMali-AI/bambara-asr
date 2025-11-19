@@ -69,9 +69,6 @@ class PPOOptimizer:
         targets = batch["targets"].to(self.device, non_blocking=True)
         t_len = batch["target_lengths"].to(self.device, non_blocking=True)
         in_len = batch["input_lengths"].to(self.device, non_blocking=True)
-        
-        critic_audio = batch["reward_critic_audio_batch"].to(self.device, non_blocking=True)
-        critic_audio_att = batch["reward_critic_audio_attention_batch"].to(self.device, non_blocking=True)
 
         logp_old = batch["log_probs_old"].to(self.device, non_blocking=True).detach()
         reward = batch["reward"].to(self.device, non_blocking=True)
@@ -90,7 +87,7 @@ class PPOOptimizer:
             # autocast only when actually on GPU & amp=True
             with torch.amp.autocast(device_type="cuda", enabled=self.amp):
                 # === Actor forward ===
-                out = self.actor.forward(input_signal=audio, input_signal_length=a_len)
+                out = self.actor(processed_signal = audio, processed_signal_length  = a_len)
                 
                 if not isinstance(out, (list, tuple)) or len(out) < 2:
                     raise RuntimeError("Unexpected ASR forward() return; expected (logits_or_logp, enc_len, ...).")
@@ -136,7 +133,7 @@ class PPOOptimizer:
                     logp_new = logp_old.clone()
 
                 # Critic forward
-                V_hat = self.critic(audio = critic_audio, audio_attention_mask = critic_audio_att)  # [B]
+                V_hat = self.critic(audio = audio)  # [B]
 
                 # PPO actor loss (uses old log-prob & normalized advantage)
                 # Zero-out advantages for invalid rows to fully mask them

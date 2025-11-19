@@ -133,13 +133,8 @@ def collect_batch(
     """
     
     # for nemo
-    audio = batch["nemo_audio"].to(device)
-    audio_lens = batch["nemo_audio_len"].to(device)
-
-    #for reward and critic
-    _audio = batch["audio"].to(device)
-    _audio_attention_mask = batch["audio_attention_mask"].to(device)
-    
+    audios = batch["audio"].to(device)
+    audio_lens = batch["audio_len"].to(device)    
 
     # Eval/no-grad rollout
     asr_model.eval()
@@ -154,9 +149,8 @@ def collect_batch(
         # Forward actor -> CTC log-probs and encoded lengths
         # NeMo CTC typically returns (log_probs[B,T,V], enc_len[B], greedy_ids[B,T]) or similar tuple
         
-        features, feat_len = asr_model.preprocessor(input_signal=audio, length=audio_lens)
 
-        out = asr_model(processed_signal=features, processed_signal_length=feat_len)
+        out = asr_model(processed_signal=audios, processed_signal_length=audio_lens)
         
         #out = asr_model.forward(input_signal=audio, input_signal_length=audio_lens)
         # Be tolerant to output tuple structure
@@ -176,16 +170,15 @@ def collect_batch(
         tra = processor.tokenizer.batch_encode_plus(transcriptions, return_attention_mask=True, padding=True, return_tensors="pt")
         
         reward_model_input = {
-            "audio" : _audio,
-            "audio_attention_mask" : _audio_attention_mask,
+            "audio" : audios,
+            "audio_len" : audio_lens,
             "text" : tra["input_ids"],
             "text_attention_mask" : tra["attention_mask"]
         }
         
         critic_model_input = {
-            "audio" : _audio,
-            "audio_attention_mask" : _audio_attention_mask
-        }
+            "audio" : audios
+            }
         
         reward_model_input = {k: v.to(device) if torch.is_tensor(v) else v for k, v in reward_model_input.items()}
         critic_model_input = {k: v.to(device) if torch.is_tensor(v) else v for k, v in critic_model_input.items()}
@@ -202,14 +195,12 @@ def collect_batch(
         tgt_lens = torch.tensor(tgt_lens_list, dtype=torch.long, device=device)              # [B]
 
         blank_idx = _blank_index(asr_model)
-        logp_old = _seq_logprob_ctc(log_probs3d.to(device), enc_len.to(device), tgt_padded, tgt_lens.to, blank_idx).detach()  # [B]
+        logp_old = _seq_logprob_ctc(log_probs3d.to(device), enc_len.to(device), tgt_padded, tgt_lens.to(device), blank_idx).detach()  # [B]
 
     # Return CPU payload only; keep raw text too (tiny memory footprint)
     return {
-        "audio_batch": audio.cpu(),
+        "audio_batch": audios.cpu(),
         "audio_lengths": audio_lens.cpu(),
-        "reward_critic_audio_batch" : _audio.cpu(),
-        "reward_critic_audio_attention_batch" : _audio_attention_mask.cpu(),
         "targets": tgt_padded.cpu(),          # [B, Lmax] (for PPO update)
         "target_lengths": tgt_lens.cpu(),     # [B]
         "input_lengths": enc_len.cpu(),       # [B] (time steps at CTC head)

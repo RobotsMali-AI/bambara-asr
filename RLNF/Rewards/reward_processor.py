@@ -111,5 +111,6 @@ class RewardModelProcessor(ProcessorMixin):
             "audio_len": audio_batch_len , #.to(self.feature_extractor.model.device),
             "text": text_batch["input_ids"],
             "text_attention_mask": text_batch["attention_mask"],
+            "_audio" : audio_feats
         }
         

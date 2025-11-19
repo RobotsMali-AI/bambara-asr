@@ -114,7 +114,6 @@ class RLNFTrainer:
                 },
             )
 
-    
 
     def train(self):
         global_step = 0
@@ -224,13 +223,23 @@ class RLNFTrainer:
             for batch in pbar_val:
                 # Transcription batch audio
                 
-                self.ppo.actor.sample_rate = 16000
-                self.ppo.actor.spec_augmentation = None
+                model = self.ppo.actor
+                
+                """  model = model.to(self.device)
+                model.preprocessor.to(self.device)
+                model.encoder.to(self.device)
+                if hasattr(model, "decoder"):
+                    model.decoder.to(self.device)
+                """
+                
+                model.preprocessor.featurizer.to(self.device)
 
+                model.sample_rate = 16000
+                model.spec_augmentation = None
                 
-                audio = [aud.cpu() for aud in batch["nemo_audio"]] #
+                audio = [aud for aud in batch["_audio"]] #
                 
-                hyps = self.ppo.actor.transcribe(audio, batch_size=8)
+                hyps = model.transcribe(audio, batch_size=8)
 
                 hyp_texts = [h.text for h in hyps]
 
