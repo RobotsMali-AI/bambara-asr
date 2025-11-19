@@ -168,14 +168,14 @@ class RLNFTrainer:
 
                     # === Mettre à jour la barre tqdm ===
                     pbar.set_postfix({
-                        "actor_loss": f"{stats['actor_loss']:.4f}",
-                        "critic_loss": f"{stats['critic_loss']:.4f}",
-                        "V": f"{stats['mean_value']:.4f}",
-                        "advμ": f"{stats.get('adv_mean', float('nan')):.3f}",
-                        "clip%": f"{100*stats.get('frac_clipped', float('nan')):.1f}",
-                        "reward" : f"{stats.get('reward_mean', float('nan')):.4f}",
-                        "adv_mean": f"{stats.get('adv_mean', float('nan')):.4f}",
-                        "adv_std": f"{stats.get('adv_std', float('nan')):.4f}",
+                        "actor_loss": f"{stats['actor_loss']:.3f}",
+                        "critic_loss": f"{stats['critic_loss']:.3f}",
+                        "V": f"{stats['mean_value']:.3f}",
+                        "adv": f"{stats['adv_mean']:.3f}",
+                        "clip%": f"{100*stats['frac_clipped']:.1f}",
+                        "reward" : f"{stats['reward_mean']:.3f}",
+                        "ratio_mean": f"{stats['ratio_mean']:.3f}",
+                        "frac_clipped": f"{stats['frac_clipped']:.3f}"
                         
                     })
 
