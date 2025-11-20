@@ -5,11 +5,11 @@ model:
 tokenizer:
   path: null
   type: "char"
-  vocab: [' ', "'", '-', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'à', 'â', 'ç', 'è', 'é', 'ê', 'î', 'ï', 'ô', 'ù', 'û', 'ė', 'ŋ', 'œ', 'ɔ', 'ɛ', 'ɲ']
+  vocab: [' ', "'", '-', 'A', 'B', 'C', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'W', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'à', 'è', 'é', 'ô', 'ù', 'ŋ', 'Ɔ', 'Ɛ', 'ɔ', 'ɛ', 'ɲ']
 
 data_loaders:
   train:
-    manifest_filepath: "./manifests/train-quartznet-v1.jsonl" # Ensure this is the correct path to your training manifest
+    manifest_filepath: "./manifests/train/train-quartznet.jsonl" # Ensure this is the correct path to your training manifest
     sample_rate: 16000
     max_duration: 30
     min_duration: 0.1
@@ -17,25 +17,25 @@ data_loaders:
     num_workers: 8
     shuffle: True
     normalize_transcripts: False
-    labels: [' ', "'", '-', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'à', 'â', 'ç', 'è', 'é', 'ê', 'î', 'ï', 'ô', 'ù', 'û', 'ė', 'ŋ', 'œ', 'ɔ', 'ɛ', 'ɲ']
+    labels: [' ', "'", '-', 'A', 'B', 'C', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'W', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'à', 'è', 'é', 'ô', 'ù', 'ŋ', 'Ɔ', 'Ɛ', 'ɔ', 'ɛ', 'ɲ']
   valid:
-    manifest_filepath: "./manifests/test-quartznet-v1.jsonl"
+    manifest_filepath: "./manifests/test/test-quartznet.jsonl"
     sample_rate: 16000
     max_duration: 15
     batch_size: 32
     num_workers: 8
     shuffle: False
     normalize_transcripts: False
-    labels: [' ', "'", '-', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'à', 'â', 'ç', 'è', 'é', 'ê', 'î', 'ï', 'ô', 'ù', 'û', 'ė', 'ŋ', 'œ', 'ɔ', 'ɛ', 'ɲ']
+    labels: [' ', "'", '-', 'A', 'B', 'C', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'W', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'à', 'è', 'é', 'ô', 'ù', 'ŋ', 'Ɔ', 'Ɛ', 'ɔ', 'ɛ', 'ɲ']
   test:
-    manifest_filepath: "./manifests/test-quartznet-v1.jsonl"
+    manifest_filepath: "./manifests/test/test-quartznet.jsonl"
     sample_rate: 16000
     max_duration: 30
     batch_size: 32
     num_workers: 8
     shuffle: False
     normalize_transcripts: False
-    labels: [' ', "'", '-', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'à', 'â', 'ç', 'è', 'é', 'ê', 'î', 'ï', 'ô', 'ù', 'û', 'ė', 'ŋ', 'œ', 'ɔ', 'ɛ', 'ɲ']
+    labels: [' ', "'", '-', 'A', 'B', 'C', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'W', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'à', 'è', 'é', 'ô', 'ù', 'ŋ', 'Ɔ', 'Ɛ', 'ɔ', 'ɛ', 'ɲ']
 
 optim:
   name: "novograd"
@@ -44,7 +44,7 @@ optim:
   weight_decay: 1e-4
   sched:
     name: "CosineAnnealing"
-    max_steps: 50174 # Ensure this is the same as the number of training steps
+    max_steps: 131150 # Ensure this is the same as the number of training steps
     warmup_ratio: 0.08
     min_lr: 1e-7
     last_epoch: -1
@@ -52,11 +52,12 @@ optim:
 wandb:
   project: "afvoices"      # Ensure this matches your WandB project name
   name: "quartznet-v2.0.0"     # Ensure this is unique for each run
+  model: "quartznet"
 
 training:
   freeze_encoder: False
   precision: "bf16-mixed"
-  checkpoint_dir: "${wandb.name}-checkpoints" # Remember to change this if wandb.name has changed
+  checkpoint_dir: "${wandb.model}" # Remember to change this if wandb.name has changed
   save_top_k: 1
   patience: 25
   epochs: 100

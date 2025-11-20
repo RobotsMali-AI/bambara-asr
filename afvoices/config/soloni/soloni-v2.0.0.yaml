@@ -8,24 +8,24 @@ tokenizer:
 
 data_loaders:
   train:
-    manifest_filepath: "./manifests/train-kunkado.jsonl"
+    manifest_filepath: "./manifests/train/train-soloni.jsonl"
     sample_rate: 16000
     max_duration: 30
     min_duration: 0.1
-    batch_size: 64  # smaller batch
+    batch_size: 32  # smaller batch
     num_workers: 8
     shuffle: True
     pin_memory: True
   valid:
-    manifest_filepath: "./manifests/test-kunkado.jsonl"  # Path to the validation manifest
+    manifest_filepath: "./manifests/test/test-soloni.jsonl"  # Path to the validation manifest
     sample_rate: 16000
-    max_duration: 15
+    max_duration: 10
     batch_size: 32
     num_workers: 8
     shuffle: False
     pin_memory: True
   test:
-    manifest_filepath: "./manifests/test-kunkado.jsonl" # Path to the test manifest
+    manifest_filepath: "./manifests/test/test-soloni.jsonl" # Path to the test manifest
     sample_rate: 16000
     max_duration: 30
     batch_size: 32
@@ -36,6 +36,7 @@ data_loaders:
 wandb:
   project: "afvoices" # Ensure this matches your WandB project name
   name: "soloni-v2.0.0" # Ensure this is unique for each run
+  model: "soloni"
 
 optim:
   name: "adamw"
@@ -45,7 +46,7 @@ optim:
   weight_decay: 1e-4
   sched:
     name: "NoamAnnealing"
-    max_steps: 36403  # (epochs * steps_per_epoch)
+    max_steps: 262300  # (epochs * steps_per_epoch)
     warmup_ratio: 0.1
     d_model: 512 # only for NoamAnnealing scheduler
     min_lr: 1e-6
@@ -56,7 +57,7 @@ training:
   # freezing the encoder
   freeze_encoder: False
   precision: "bf16-mixed"
-  checkpoint_dir: "./checkpoints/${wandb.name}-checkpoints"
+  checkpoint_dir: "./checkpoints/${wandb.model}"
   save_top_k: 1
   patience: 25  # more patience
   epochs: 100
