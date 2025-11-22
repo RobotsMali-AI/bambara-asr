@@ -2,7 +2,7 @@
 
 **Project Overview**
 
-This repository contains a collection of tools, experiments, and utilities for building and fine-tuning automatic speech recognition (ASR) systems—particularly for low-resource languages like Bambara—and for experimenting with reinforcement learning from human feedback (RLHF) techniques for ASR training.
+This repository contains a collection of tools, experiments, and utilities for building and fine-tuning automatic speech recognition (ASR) systems—particularly for the Bambara language—and for experimenting with reinforcement learning from human feedback (RLHF) techniques for ASR training.
 
 **License**
 
@@ -31,18 +31,13 @@ Before you try to experiment with Reinforcement Learning from Nouhoum Feedback
 
 3. **Explore sub‑folders**:
 
-Each subfolder in this repo holds code and config for different experiments that we have done. Each one also possesses a dedicated README for further details and instructions. 
-
-4. **Run an RLNF demo training session quickly**:
-   Open `test_rlnf.ipynb`, follow the step‑by‑step example of a PPO‑based ASR fine‑tuning workflow.
-
-   Note: You'll need a few audio samples organized by a manifest.jsonl file and a significant amount of RAM to test the pipeline on a CPU device at the moment. The code is not optimized.
+   Each subfolder in this repo holds code and config for different experiments that we have done. Each one also possesses a dedicated README for further details and instructions. 
 
 ---
 
 ## Contributions
 
-Pretty much everything in this repo is still very experimental so contributions are really welcome! Please open an issue or submit a pull request for any bug fix or feature request. For questions or support, file an issue in this repo.
+Everything about RLNF is still experimental and contributions are welcome! Please open an issue or submit a pull request for any bug fix or feature request. For questions or support, file an issue in this repo.
 
 ---
 
