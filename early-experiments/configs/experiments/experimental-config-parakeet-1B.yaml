@@ -1,0 +1,65 @@
+model:
+  name: "nvidia/parakeet-tdt-1.1b"
+
+tokenizer:
+  path: "???"
+  type: "bpe"
+
+data_loaders:
+  train:
+    manifest_filepath: "bam-asr-all/manifests/train-manifest.json"
+    sample_rate: 16000
+    max_duration: 30
+    batch_size: 4
+    num_workers: 4
+    shuffle: True
+    pin_memory: True
+    use_start_end_token: True
+  valid:
+    manifest_filepath: "bam-asr-all/manifests/test-manifest.json"
+    sample_rate: 16000
+    max_duration: 15
+    batch_size: 4
+    num_workers: 4
+    shuffle: False
+    pin_memory: True
+    use_start_end_token: True
+  test:
+    manifest_filepath: "bam-asr-all/manifests/test-manifest.json"
+    sample_rate: 16000
+    max_duration: 30
+    batch_size: 8
+    num_workers: 4
+    shuffle: False
+    pin_memory: True
+    use_start_end_token: True
+
+optim:
+  name: "adamw"
+  lr: 3e-3
+  betas: [0.9, 0.98]
+  weight_decay: 1e-4
+  sched:
+    name: "NoamAnnealing"
+    d_model: 1024
+    warmup_steps: null
+    max_steps: 2300
+    warmup_ratio: 0.1
+    min_lr: 1e-9
+
+wandb:
+  project: "bam-asr-nemo-training"
+  name: "finetune-parakeet-1.1B-v1"
+
+training:
+  freeze_encoder: True
+  warm_decoder: True
+  checkpoint_dir: "parakeet-1.1B-v1-checkpoints" # Remember to change this if wandb.name is changed
+  save_top_k: 3
+  patience: 3
+  epochs: 1
+  accumulate_grad_batches: 4
+  check_val_every_n_epoch: 1
+  resume_if_exists: False
+  resume_ignore_no_checkpoint: True
+  save_model_path: "models/soloba-1.1B-tdt.nemo" # Remember to change this if wandb.name is changed

@@ -1,1 +1,10 @@
 notes.md
+datacrunch-setup.bash
+note.ipynb
+*checkpoints
+*__pycache__
+*.egg*
+rlnf/reward/manifests
+rlnf/reward/train_reward_model.ipynb
+test_rlnf.ipynb
+rlnf/experiments/rlnf-export.tar.gz

@@ -1,0 +1,68 @@
+model:
+  name: "nvidia/parakeet-tdt_ctc-110m"
+
+tokenizer:
+  path: "bam-tokenizer/tokenizer_spe_bpe_v1024"
+  type: "bpe"
+
+data_loaders:
+  train:
+    manifest_filepath: "bam-asr-all/manifests/train-manifest.json"
+    sample_rate: 16000
+    max_duration: 30
+    min_duration: 0.1
+    batch_size: 32  # smaller batch
+    num_workers: 8
+    shuffle: True
+    pin_memory: True
+    use_start_end_token: True
+  valid:
+    manifest_filepath: "bam-asr-all/manifests/test-manifest.json"  # Path to the validation manifest
+    sample_rate: 16000
+    max_duration: 15
+    batch_size: 32
+    num_workers: 8
+    shuffle: False
+    pin_memory: True
+    use_start_end_token: True
+  test:
+    manifest_filepath: "bam-asr-all/manifests/test-manifest.json" # Path to the test manifest
+    sample_rate: 16000
+    max_duration: 30
+    batch_size: 32
+    num_workers: 8
+    shuffle: False
+    pin_memory: True
+    use_start_end_token: True
+
+wandb:
+  project: "bam-asr-nemo-training"
+  name: "finetune-parakeet-110M-v3"
+
+optim:
+  name: "adamw"
+  # Slightly lower LR if unfreezing
+  lr: 5e-4
+  betas: [0.9, 0.98]
+  weight_decay: 1e-4
+  sched:
+    name: "WarmupAnnealing"
+    max_steps: 17437  # (epochs * steps_per_epoch)
+    warmup_ratio: 0.05
+    min_lr: 1e-6
+    last_epoch: -1
+
+training:
+  # Unfreeze the encoder
+  freeze_encoder: False
+  warm_decoder: True
+  precision: "bf16-mixed"
+  checkpoint_dir: "parakeet-110M-v3-checkpoints"
+  save_top_k: 2
+  patience: 6  # more patience
+  epochs: 30
+  accumulate_grad_batches: 2  # effective batch size 64
+  check_val_every_n_epoch: 1
+  resume_if_exists: True
+  resume_ignore_no_checkpoint: True
+  save_model_path: "models/soloni-110M-tdt-ctc-v3.nemo"

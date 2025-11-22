@@ -1,0 +1,65 @@
+model:
+  name: "stt_fr_quartznet15x5"
+
+tokenizer:
+  path: null
+  type: "char"
+
+data_loaders:
+  train:
+    manifest_filepath: "bam-asr-all/manifests/train-manifest.json"
+    sample_rate: 16000
+    max_duration: 30
+    batch_size: 8
+    num_workers: 4
+    shuffle: True
+    normalize_transcripts: False
+    labels: []
+  valid:
+    manifest_filepath: "bam-asr-all/manifests/test-manifest.json"
+    sample_rate: 16000
+    max_duration: 15
+    batch_size: 8
+    num_workers: 4
+    shuffle: False
+    normalize_transcripts: False
+    labels: []
+  test:
+    manifest_filepath: "bam-asr-all/manifests/test-manifest.json"
+    sample_rate: 16000
+    max_duration: 30
+    batch_size: 8
+    num_workers: 4
+    shuffle: False
+    normalize_transcripts: False
+    labels: []
+
+optim:
+  name: "novograd"
+  lr: 1e-2
+  betas: [0.95, 0.5]
+  weight_decay: 1e-3
+  sched:
+    name: "CosineAnnealing"
+    warmup_steps: null
+    max_steps: 2300
+    warmup_ratio: 0.05
+    min_lr: 1e-5
+    last_epoch: -1
+
+wandb:
+  project: "bam-asr-nemo-training"
+  name: "finetune-quartznet-v1"
+
+training:
+  freeze_encoder: False
+  warm_decoder: False
+  checkpoint_dir: "quartznet-v1-checkpoints" # Remember to change this if wandb.name is changed
+  save_top_k: 3
+  patience: 3
+  epochs: 2
+  accumulate_grad_batches: 4
+  check_val_every_n_epoch: 1
+  resume_if_exists: False
+  resume_ignore_no_checkpoint: True
+  save_model_path: "models/quartznet-finetuned-jeli.nemo" # Remember to change this if wandb.name is changed

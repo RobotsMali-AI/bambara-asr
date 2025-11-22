@@ -1,0 +1,4 @@
+export GOOGLE_APPLICATION_CREDENTIALS="$HOME/work/gcloud.key.json"
+export CUDA_VISIBLE_DEVICES=1,2
+ulimit -n 1048576
+export NUMBA_CUDA_USE_NVIDIA_BINDING="0"
