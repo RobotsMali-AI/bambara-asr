@@ -40,21 +40,21 @@ pip install nemo_toolkit['all']
 
 The `.yaml` files in the `/configs` directory are optimized for the **Jeli-ASR** dataset.
 
-| Name              | Type                              | Params | Trainable
---------------------------------------------------------------------------------
-0  | preprocessor      | AudioToMelSpectrogramPreprocessor | 0      | NO
-1  | encoder           | ConformerEncoder                  | 108 M  | YES
-2  | decoder           | RNNTDecoder                       | 3.6 M  | YES
-3  | joint             | RNNTJoint                         | 1.1 M  | YES
-4  | loss              | RNNTLoss                          | 0      | NO
-5  | spec_augmentation | SpectrogramAugmentation           | 0      | NO
-6  | wer               | WER                               | 0      | NO
-7  | ctc_decoder       | ConvASRDecoder                    | 263 K  | YES
-8  | ctc_loss          | CTCLoss                           | 0      | NO
-9  | ctc_wer           | WER                               | 0      | NO
-10 | embedding_model   | SentenceTransformer               | 110 M  | NO
-11 | semantic_head     | Sequential                        | 656 K  | YES
-12 | semantic_loss_fn  | MSELoss                           | 0      | NO
+| Name              | Type                              | Params | Trainable |
+|-------------------|-----------------------------------|--------|-----------|
+| preprocessor      | AudioToMelSpectrogramPreprocessor | 0      | NO |
+| encoder           | ConformerEncoder                  | 108 M  | YES |
+| decoder           | RNNTDecoder                       | 3.6 M  | YES |
+| joint             | RNNTJoint                         | 1.1 M  | YES |
+| loss              | RNNTLoss                          | 0      | NO |
+| spec_augmentation | SpectrogramAugmentation           | 0      | NO |
+| wer               | WER                               | 0      | NO |
+| ctc_decoder       | ConvASRDecoder                    | 263 K  | YES |
+| ctc_loss          | CTCLoss                           | 0      | NO |
+| ctc_wer           | WER                               | 0      | NO |
+| embedding_model   | SentenceTransformer               | 110 M  | NO |
+| semantic_head     | Sequential                        | 656 K  | YES |
+| semantic_loss_fn  | MSELoss                           | 0      | NO |
 
 ## 📊 Evaluation & Metrics
 
