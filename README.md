@@ -31,13 +31,13 @@ Before you try to experiment with Reinforcement Learning from Nouhoum Feedback
 
 3. **Explore sub‑folders**:
 
-   Each subfolder in this repo holds code and config for different experiments that we have done. Each one also possesses a dedicated README for further details and instructions. 
+   Each subfolder in this repo holds code and config for different experiments that we have done. Each one also possesses a dedicated README for further details and instructions. Looking for details on [Listen, Attend, Understand?](./lau/)
 
 ---
 
 ## Contributions
 
-Everything about RLNF is still experimental and contributions are welcome! Please open an issue or submit a pull request for any bug fix or feature request. For questions or support, file an issue in this repo.
+RLNF is still experimental and contributions are welcome! Please open an issue or submit a pull request for any bug fix or feature request. For questions or support, file an issue in this repo.
 
 ---
 
