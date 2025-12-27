@@ -1,13 +1,13 @@
 Cython==3.0.11
 packaging==24.2
-nemo_toolkit==2.3.0
+nemo_toolkit==2.5.0
 megatron-core==0.9.0
 pydub==0.25.1
 wandb==0.19.4
 sentencepiece==0.2.0
 torch==2.6.0
 scikit-learn==1.5.2
-numpy==1.26.3
+numpy==1.26.4
 matplotlib==3.10.0
 datasets==3.6.0
 torchaudio==2.6.0

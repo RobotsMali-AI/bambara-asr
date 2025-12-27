@@ -72,7 +72,7 @@ def main():
     parser.add_argument("restore_path", type=str, help="Path to .nemo model archive.")
     parser.add_argument("log_dir", type=str, help="Directory where logs/results will be saved.")
     parser.add_argument("--best_ckpt", type=str, default=None, help="Optional path to best checkpoint to load.")
-    parser.add_argument("--devices", type=str, default="2,3", help='Devices: e.g. "1" or "0,1". Use "-1" for all.')
+    parser.add_argument("--devices", type=str, default="-1", help='Devices: e.g. "1" or "0,1". Use "-1" for all.')
     parser.add_argument("--accelerator", type=str, default="gpu", choices=["gpu", "cpu"], help="Accelerator type.")
     parser.add_argument("--no_progress", action="store_true", help="Disable progress bar.")
     args = parser.parse_args()
