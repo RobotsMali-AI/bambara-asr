@@ -12,7 +12,7 @@ data_loaders:
     sample_rate: 16000
     max_duration: 30
     min_duration: 0.1
-    batch_size: 128  # smaller batch
+    batch_size: 64  # smaller batch
     num_workers: 8
     shuffle: True
     pin_memory: True
@@ -45,17 +45,17 @@ optim:
   weight_decay: 1e-4
   sched:
     name: "NoamAnnealing"
-    max_steps: 12545  # (epochs * steps_per_epoch)
-    warmup_steps: 6000
+    max_steps: 13000  # (epochs * steps_per_epoch)
+    warmup_steps: 1500
     warmup_ratio: null
     d_model: 512 # only for NoamAnnealing scheduler
-    min_lr: 1e-7
+    min_lr: 1e-6
     last_epoch: -1
 
 
 training:
   # freezing the encoder
-  freeze_encoder: True
+  freeze_encoder: False
   precision: "bf16-mixed"
   checkpoint_dir: "./checkpoints/${wandb.name}-checkpoints"
   save_top_k: 1

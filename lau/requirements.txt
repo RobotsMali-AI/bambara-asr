@@ -1,4 +1,4 @@
-nemo-toolkit['asr']==2.5.0
+nemo-toolkit[asr]==2.5.0
 sentence_transformers==5.1.2
 scikit-learn==1.6.1
 cuda-toolkit

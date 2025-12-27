@@ -1,6 +1,6 @@
 model:
-  name: "RobotsMali/soloba-ctc-0.6b-v2"
-  first_training: True  # SET TO FALSE
+  name: "./models/soloba-ctc-v3.0.0.nemo"
+  first_training: False  # SET TO FALSE
 
 tokenizer:
   path: "tokenizers/soloba/"
@@ -12,7 +12,7 @@ data_loaders:
     sample_rate: 16000
     max_duration: 30
     min_duration: 0.1
-    batch_size: 16  # smaller batch if memory insufficient
+    batch_size: 32  # smaller batch if memory insufficient
     num_workers: 8
     shuffle: True
     pin_memory: True
@@ -37,18 +37,18 @@ data_loaders:
 
 wandb:
   project: "kunkado" # Ensure this matches your WandB project name
-  name: "soloba-ctc-v3.0.0" # Ensure this is unique for each run
+  name: "soloba-ctc-v3.1.0" # Ensure this is unique for each run
 
 optim:
   name: "adamw"
   # Slightly lower LR if unfreezing
-  lr: 1
+  lr: 3e-2
   betas: [0.9, 0.98]
   weight_decay: 1e-4
   sched:
     name: "NoamAnnealing"
-    max_steps: 52000  # (epochs * steps_per_epoch)
-    warmup_steps: 3500
+    max_steps: 26000  # (epochs * steps_per_epoch)
+    warmup_steps: 2000
     warmup_ratio: null
     d_model: 512
     min_lr: 1e-6
@@ -56,7 +56,7 @@ optim:
 
 training:
   # freezing the encoder
-  freeze_encoder: True
+  freeze_encoder: False
   precision: "bf16-mixed"
   checkpoint_dir: "./checkpoints/${wandb.name}-checkpoints"
   save_top_k: 1

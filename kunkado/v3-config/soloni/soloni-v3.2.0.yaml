@@ -1,9 +1,9 @@
 model:
-  name: "RobotsMali/soloba-ctc-0.6b-v2"
-  first_training: True  # SET TO FALSE
+  name: "./models/soloni-v3.1.0.nemo"
+  first_training: False
 
 tokenizer:
-  path: "tokenizers/soloba/"
+  path: "tokenizers/soloni"
   type: "bpe"
 
 data_loaders:
@@ -12,15 +12,14 @@ data_loaders:
     sample_rate: 16000
     max_duration: 30
     min_duration: 0.1
-    batch_size: 16  # smaller batch if memory insufficient
+    batch_size: 32  # smaller batch
     num_workers: 8
     shuffle: True
     pin_memory: True
   valid:
     manifest_filepath: "./manifests/test-kunkado.jsonl"  # Path to the validation manifest
     sample_rate: 16000
-    max_duration: 15
-    min_duration: 0.1
+    max_duration: 10
     batch_size: 32
     num_workers: 8
     shuffle: False
@@ -29,7 +28,6 @@ data_loaders:
     manifest_filepath: "./manifests/test-kunkado.jsonl" # Path to the test manifest
     sample_rate: 16000
     max_duration: 30
-    min_duration: 0.1
     batch_size: 32
     num_workers: 8
     shuffle: False
@@ -37,32 +35,33 @@ data_loaders:
 
 wandb:
   project: "kunkado" # Ensure this matches your WandB project name
-  name: "soloba-ctc-v3.0.0" # Ensure this is unique for each run
+  name: "soloni-v3.2.0" # Ensure this is unique for each run
 
 optim:
   name: "adamw"
   # Slightly lower LR if unfreezing
-  lr: 1
+  lr: 0.8
   betas: [0.9, 0.98]
   weight_decay: 1e-4
   sched:
     name: "NoamAnnealing"
-    max_steps: 52000  # (epochs * steps_per_epoch)
-    warmup_steps: 3500
+    max_steps: 26000  # (epochs * steps_per_epoch)
+    warmup_steps: 1000
     warmup_ratio: null
-    d_model: 512
+    d_model: 512 # only for NoamAnnealing scheduler
     min_lr: 1e-6
     last_epoch: -1
 
+
 training:
   # freezing the encoder
-  freeze_encoder: True
+  freeze_encoder: False
   precision: "bf16-mixed"
   checkpoint_dir: "./checkpoints/${wandb.name}-checkpoints"
   save_top_k: 1
   patience: 20  # more patience
   epochs: 100
-  accumulate_grad_batches: 1
+  accumulate_grad_batches: 1  # effective batch size 128
   check_val_every_n_epoch: 1
   resume_if_exists: True
   resume_ignore_no_checkpoint: True

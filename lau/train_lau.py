@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 """
-FSU training script; experiments with Hybrid CTC/TDT parakeet model.
+LAU training script; experiments with Hybrid CTC/TDT parakeet model.
 Usage
-~~~~~
-python train_fsu.py --config <config.yaml> \
+~~~~
+python train_lau.py --config <config.yaml> \
     [--freq-masks 4 --freq-width 27 --time-masks 10 --time-width 0.1] \
     [--rect-freq 50 --rect-time 120 --rect-masks 10] \
     [--aux-ctc-weight 0.6] [--semantic-loss-type mse] [--semantic-loss-weight 0.5]
 
 Notes
-~~~~~
+~~~~
 - If you set SpecAugment args, they are applied only if the model exposes `model.cfg.spec_augment`.
 - `--aux-ctc-weight` is applied only if `model.cfg.aux_ctc.ctc_loss_weight` exists (hybrid models).
 - Tokenizer/vocabulary change on first training:
@@ -22,7 +22,7 @@ from __future__ import annotations
 import argparse
 import sys, os
 from typing import Any
-from hybrid_rnnt_ctc_fsu_models import HybridRNNTCTCFSUModel
+from hybrid_rnnt_ctc_lau_models import HybridRNNTCTCLAUModel
 
 # Utils (project-specific)
 from utils.python.preprocessing import check_and_convert_audio_channels
@@ -69,7 +69,7 @@ def prefill_manifests_hard(model, data_cfg):
 # Helpers
 # -----------------------------
 
-def maybe_apply_spec_augment(model: HybridRNNTCTCFSUModel, args: argparse.Namespace) -> None:
+def maybe_apply_spec_augment(model: HybridRNNTCTCLAUModel, args: argparse.Namespace) -> None:
     """Apply SpecAugment overrides if the model exposes `cfg.spec_augment`.
     Safe no-ops if fields are missing.
     """
@@ -105,7 +105,7 @@ def maybe_apply_spec_augment(model: HybridRNNTCTCFSUModel, args: argparse.Namesp
         pass
 
 
-def maybe_set_aux_ctc_weight(model: HybridRNNTCTCFSUModel, weight: float | None) -> None:
+def maybe_set_aux_ctc_weight(model: HybridRNNTCTCLAUModel, weight: float | None) -> None:
     if weight is None:
         return
     cfg = getattr(model, "cfg", None)
@@ -116,7 +116,7 @@ def maybe_set_aux_ctc_weight(model: HybridRNNTCTCFSUModel, weight: float | None)
         model.cfg.aux_ctc.ctc_loss_weight = float(weight)
 
 
-def load_model_from_config(config: Any) -> HybridRNNTCTCFSUModel:
+def load_model_from_config(config: Any) -> HybridRNNTCTCLAUModel:
     """Load an ASR model according to config.model.first_training.
     - first_training=True: from_pretrained() + optional vocabulary/tokenizer change
     - first_training=False: restore_from() (no vocab change)
@@ -125,7 +125,7 @@ def load_model_from_config(config: Any) -> HybridRNNTCTCFSUModel:
 
     if first_training:
         # from_pretrained via base class for broad model support
-        model = nemo_asr.models.ASRModel.from_pretrained(model_name=config.model.name, strict=False)
+        model = HybridRNNTCTCLAUModel.from_pretrained(model_name=config.model.name, strict=False)
 
         # Optionally change vocabulary/tokenizer for first training only
         # Prefer tokenizer spec if provided; otherwise allow char-level vocab
@@ -149,7 +149,7 @@ def load_model_from_config(config: Any) -> HybridRNNTCTCFSUModel:
         if not os.path.exists(restore_path):
             raise ValueError("config.model.name is required to be an archive file when first_training=False")
 
-        model = nemo_asr.models.ASRModel.restore_from(restore_path=restore_path)
+        model = HybridRNNTCTCLAUModel.restore_from(restore_path=restore_path)
     return model
 
 
@@ -246,6 +246,7 @@ def main() -> None:
     trainer = nl.Trainer(
         devices=devices,
         accelerator="gpu",
+	strategy="ddp_find_unused_parameters_true",
         precision=config.training.precision,
         max_epochs=config.training.epochs,
         accumulate_grad_batches=config.training.accumulate_grad_batches,
@@ -280,3 +281,4 @@ if __name__ == "__main__":
     if len(sys.argv) == 1:
         print(__doc__)
     main()
+

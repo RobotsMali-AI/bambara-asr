@@ -37,18 +37,18 @@ data_loaders:
 
 wandb:
   project: "kunkado" # Ensure this matches your WandB project name
-  name: "soloba-ctc-v3.0.0" # Ensure this is unique for each run
+  name: "soloba-tdt-v3.0.0" # Ensure this is unique for each run
 
 optim:
   name: "adamw"
   # Slightly lower LR if unfreezing
-  lr: 2
+  lr: 1
   betas: [0.9, 0.98]
   weight_decay: 1e-4
   sched:
     name: "NoamAnnealing"
-    max_steps: 52100  # (epochs * steps_per_epoch)
-    warmup_steps: 6000
+    max_steps: 52000  # (epochs * steps_per_epoch)
+    warmup_steps: 3500
     warmup_ratio: null
     d_model: 512
     min_lr: 1e-6
@@ -56,7 +56,7 @@ optim:
 
 training:
   # freezing the encoder
-  freeze_encoder: False
+  freeze_encoder: True
   precision: "bf16-mixed"
   checkpoint_dir: "./checkpoints/${wandb.name}-checkpoints"
   save_top_k: 1

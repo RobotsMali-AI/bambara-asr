@@ -1,23 +1,23 @@
 model:
-  name: "RobotsMali/soloni-114m-tdt-ctc-v0"
+  name: "RobotsMali/soloni-114m-tdt-ctc-v2"
   first_training: True
 
 tokenizer:
-  path: "tokenizers/soloni-fsu"
+  path: "tokenizers/soloni"
   type: "bpe"
 
 data_loaders:
   train:
-    manifest_filepath: "./manifests/train/train-fsu.jsonl"
+    manifest_filepath: "./manifests/train-kunkado.jsonl"
     sample_rate: 16000
     max_duration: 30
     min_duration: 0.1
-    batch_size: 32  # smaller batch
+    batch_size: 64  # smaller batch
     num_workers: 8
     shuffle: True
     pin_memory: True
   valid:
-    manifest_filepath: "./manifests/test/test-fsu.jsonl"  # Path to the validation manifest
+    manifest_filepath: "./manifests/test-kunkado.jsonl"  # Path to the validation manifest
     sample_rate: 16000
     max_duration: 10
     batch_size: 32
@@ -25,7 +25,7 @@ data_loaders:
     shuffle: False
     pin_memory: True
   test:
-    manifest_filepath: "./manifests/test/test-fsu.jsonl" # Path to the test manifest
+    manifest_filepath: "./manifests/test-kunkado.jsonl" # Path to the test manifest
     sample_rate: 16000
     max_duration: 30
     batch_size: 32
@@ -34,20 +34,20 @@ data_loaders:
     pin_memory: True
 
 wandb:
-  project: "fsu-train" # Ensure this matches your WandB project name
-  name: "soloni-v2.0.0" # Ensure this is unique for each run
-  model: "soloni"
+  project: "kunkado" # Ensure this matches your WandB project name
+  name: "soloni-v3.0.1" # Ensure this is unique for each run
 
 optim:
   name: "adamw"
   # Slightly lower LR if unfreezing
-  lr: 3e-3
+  lr: 2
   betas: [0.9, 0.98]
   weight_decay: 1e-4
   sched:
     name: "NoamAnnealing"
-    max_steps: 262300  # (epochs * steps_per_epoch)
-    warmup_ratio: 0.1
+    max_steps: 13000  # (epochs * steps_per_epoch)
+    warmup_steps: 1000
+    warmup_ratio: null
     d_model: 512 # only for NoamAnnealing scheduler
     min_lr: 1e-6
     last_epoch: -1
@@ -55,13 +55,13 @@ optim:
 
 training:
   # freezing the encoder
-  freeze_encoder: False
+  freeze_encoder: True
   precision: "bf16-mixed"
-  checkpoint_dir: "./checkpoints/${wandb.model}"
+  checkpoint_dir: "./checkpoints/${wandb.name}-checkpoints"
   save_top_k: 1
-  patience: 25  # more patience
+  patience: 20  # more patience
   epochs: 100
-  accumulate_grad_batches: 1  # effective batch size 64
+  accumulate_grad_batches: 1  # effective batch size 128
   check_val_every_n_epoch: 1
   resume_if_exists: True
   resume_ignore_no_checkpoint: True

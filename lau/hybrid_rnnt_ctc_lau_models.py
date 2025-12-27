@@ -24,7 +24,7 @@ from nemo.collections.asr.data.audio_to_text_dali import DALIOutputs
 from nemo.core.classes.mixins import AccessMixin
 from nemo.utils import model_utils
 
-class HybridRNNTCTCFSUModel(EncDecHybridRNNTCTCBPEModel):
+class HybridRNNTCTCLAUModel(EncDecHybridRNNTCTCBPEModel):
     """Base class for hybrid RNNT/CTC models trained for Foreign Speech Understanding."""
 
     def __init__(self, cfg: DictConfig, trainer: Trainer = None):
@@ -46,6 +46,7 @@ class HybridRNNTCTCFSUModel(EncDecHybridRNNTCTCBPEModel):
         ## Be sure to call setup semantic loss before training; values are always initialized to default
         self.semantic_loss_fn = nn.MSELoss()
         self.semantic_loss_weight = 0.5  # Default to 0.5, can be set later
+        self.compute_eval_loss = True # We want to compute eval loss by default
     
     def setup_semantic_loss(self, semantic_loss_type: str, semantic_loss_weight: float):
         self.semantic_loss_weight = semantic_loss_weight
@@ -171,7 +172,9 @@ class HybridRNNTCTCFSUModel(EncDecHybridRNNTCTCBPEModel):
         if self.semantic_loss_weight > 0:
             with torch.no_grad():
                 target_sentences = [self.tokenizer.ids_to_text(t[:l].tolist()) for t, l in zip(transcript, transcript_len)]
-                target_embeddings = self.embedding_model.encode(target_sentences, convert_to_tensor=True)
+                target_embeddings_no_grad = self.embedding_model.encode(target_sentences, convert_to_tensor=True)
+
+            target_embeddings = target_embeddings_no_grad.clone()
             predicted_embeddings = self.semantic_head(encoded.mean(dim=2))  # Mean pooling over time dimension
             if isinstance(self.semantic_loss_fn, nn.CosineEmbeddingLoss):
                 # For CosineEmbeddingLoss, we need to provide a target tensor of 1s (indicating similarity)
@@ -296,7 +299,9 @@ class HybridRNNTCTCFSUModel(EncDecHybridRNNTCTCBPEModel):
         if self.semantic_loss_weight > 0:
             with torch.no_grad():
                 target_sentences = [self.tokenizer.ids_to_text(t[:l].tolist()) for t, l in zip(transcript, transcript_len)]
-                target_embeddings = self.embedding_model.encode(target_sentences, convert_to_tensor=True)
+                target_embeddings_no_grad = self.embedding_model.encode(target_sentences, convert_to_tensor=True)
+
+            target_embeddings = target_embeddings_no_grad.clone()
             predicted_embeddings = self.semantic_head(encoded.mean(dim=2))  # Mean pooling over time dimension
             if isinstance(self.semantic_loss_fn, nn.CosineEmbeddingLoss):
                 # For CosineEmbeddingLoss, we need to provide a target tensor of 1s (indicating similarity)
@@ -317,4 +322,8 @@ class HybridRNNTCTCFSUModel(EncDecHybridRNNTCTCBPEModel):
         if AccessMixin.is_access_enabled(self.model_guid):
             AccessMixin.reset_registry(self)
 
+        self.log("val_loss", tensorboard_logs['val_loss'])
+        self.log("val_semantic_loss", tensorboard_logs['val_semantic_loss'])
+
         return tensorboard_logs
+
