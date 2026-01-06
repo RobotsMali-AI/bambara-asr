@@ -68,14 +68,14 @@ Beyond standard WER and BLEU, this folder includes scripts to calculate the metr
 If you use this code or our model checkpoints, please cite this paper (coming soon on arxiv):
 
 ```bibtex
-@misc{diarra2025lau,
-      title={Listen, Attend, Understand: a Regularization Technique for stable E2E Speech Translation training on High Variance labels},
-      author={Diarra, Yacouba and Leventhal, Michael},
-      year={2025},
-      eprint={2512.XXXXX},
+@misc{diarra2026listenattendunderstandregularization,
+      title={Listen, Attend, Understand: a Regularization Technique for Stable E2E Speech Translation Training on High Variance labels}, 
+      author={Yacouba Diarra and Michael Leventhal},
+      year={2026},
+      eprint={2601.01121},
       archivePrefix={arXiv},
       primaryClass={cs.CL},
-      url={https://arxiv.org/abs/2512.XXXXX}, 
+      url={https://arxiv.org/abs/2601.01121}, 
 }
 
 ```
