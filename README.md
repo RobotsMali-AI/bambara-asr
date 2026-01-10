@@ -45,13 +45,13 @@ texts = ["kelen", "fila."]
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-tokenizer : T5Tokenizer = T5Tokenizer.from_pretrained("Panga-Azazia/reward-model")
+tokenizer : T5Tokenizer = T5Tokenizer.from_pretrained(RobotsMali/reward-model")
 asr_model : EncDecCTCModel= EncDecCTCModel.from_pretrained("RobotsMali/stt-bm-quartznet15x5-V0")
 feature_extractor : RewardFeatureExtractor = RewardFeatureExtractor(asr_model)
 
 processor : RewardModelProcessor = RewardModelProcessor(feature_extractor, tokenizer)
 
-model : RewardModel = RewardModel.from_pretrained("Panga-Azazia/reward-model")
+model : RewardModel = RewardModel.from_pretrained("RobotsMali/reward-model")
 
 model.eval()
 model.to(device)
@@ -77,6 +77,7 @@ coming soon......
 **want to test the RLNF model**
 
 coming soon......
+
 
 
 
