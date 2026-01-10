@@ -10,6 +10,7 @@ class CriticModel(RewardModel) :
         
         self.combined_dim = self.cfg.audio_conv_channels
         
+        
         self.head = self.build_head(self.combined_dim)
         
     def forward(self, audio, labels=None, reward=None, **kwargs):
