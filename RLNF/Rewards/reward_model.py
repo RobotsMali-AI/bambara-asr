@@ -66,7 +66,7 @@ class RewardModel(PreTrainedModel):
         self.combined_dim = audio_dim + 2 * self.cfg.lstm_hidden
         self.head = self.build_head(self.combined_dim, use_sigmoid=True)
         
-    """   def build_head(self, in_dim, sigm = True):
+    """   def build_head(self, in_dim):
         return nn.Sequential(
             nn.Linear(in_dim, self.cfg.head_hidden),
             nn.ReLU(inplace=True),
@@ -74,7 +74,7 @@ class RewardModel(PreTrainedModel):
             nn.Linear(self.cfg.head_hidden, self.cfg.head_hidden),
             nn.ReLU(inplace=True),
             nn.Linear(self.cfg.head_hidden, 1),
-            nn.Sigmoid() if sigm else "",
+            nn.Sigmoid() ,
         ) """
         
     def build_head(self, in_dim, use_sigmoid: bool = False):
