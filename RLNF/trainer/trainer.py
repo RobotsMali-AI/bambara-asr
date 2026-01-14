@@ -1,5 +1,7 @@
 from typing import Dict
 import os
+import contextlib
+
 import torch
 import torch.distributed as dist
 from torch.utils.data import DataLoader
@@ -23,7 +25,9 @@ from tqdm import tqdm
 
 
 class RLNFTrainer:
-    """RLNF Trainer — Single GPU & Multi-GPU (DDP) SAFE"""
+    """
+    RLNF Trainer — Single GPU & Multi-GPU (DDP) SAFE
+    """
 
     def __init__(
         self,
@@ -46,6 +50,7 @@ class RLNFTrainer:
         num_workers: int = 2,
         pin_memory: bool = True,
         amp: bool = False,
+
         save_dir: str = "checkpoints",
         save_best_by: str = "val/wer",
         save_best_mode: str = "min",
@@ -76,7 +81,10 @@ class RLNFTrainer:
         self._use_wandb = wandb_logging and self.is_main
 
         if self._use_wandb:
-            wandb.init(project=wandb_project, name=run_name)
+            wandb.init(
+                project=wandb_project,
+                name=run_name,
+            )
 
         # ================= DATA =================
         collate_fn = RewardDataCollator(processor=processor, augment=False)
@@ -117,10 +125,11 @@ class RLNFTrainer:
         )
 
     # =====================================================
-    # TRAIN LOOP
+    # TRAIN
     # =====================================================
     def train(self):
         global_step = 0
+
         try:
             for epoch in range(self.epochs):
                 self.current_epoch = epoch
@@ -149,16 +158,18 @@ class RLNFTrainer:
 
                     # ===== reward sync =====
                     if self.is_distributed:
+                       
                         batch_dict["reward"] = batch_dict["reward"].to(self.device)
                         dist.all_reduce(batch_dict["reward"], op=dist.ReduceOp.SUM)
                         batch_dict["reward"] /= self.world_size
 
+
                     stats = self.ppo.update(batch_dict)
 
                     if self.is_main:
-                        # ===== logging =====
                         if self._use_wandb:
                             wandb.log({f"train/{k}": v for k, v in stats.items()}, step=global_step)
+
                         for k, v in stats.items():
                             self.tb_writer.add_scalar(f"train/{k}", v, global_step)
 
@@ -168,17 +179,19 @@ class RLNFTrainer:
                             "V": f"{stats['mean_value']:.3f}",
                             "adv": f"{stats['adv_mean']:.3f}",
                             "clip%": f"{100*stats['frac_clipped']:.1f}",
-                            "reward": f"{stats['reward_mean']:.3f}",
+                            "reward" : f"{stats['reward_mean']:.3f}",
                             "ratio_mean": f"{stats['ratio_mean']:.3f}",
-                        })
+                            "frac_clipped": f"{stats['frac_clipped']:.3f}"
+                        
+                    })
 
                     global_step += 1
 
                     if self.is_main and self.val_every > 0 and global_step % self.val_every == 0:
-                        self.validate_fast(global_step)
+                        self.validate(global_step)
 
                 if self.is_main:
-                    self.validate_fast(global_step, end_of_epoch=True)
+                    self.validate(global_step, end_of_epoch=True)
 
         finally:
             if self.is_main:
@@ -188,9 +201,9 @@ class RLNFTrainer:
                 self.tb_writer.close()
 
     # =====================================================
-    # VALIDATION RAPIDE AVEC AFFICHAGE LIVE
+    # VALIDATION
     # =====================================================
-    def validate_fast(self, step: int, end_of_epoch: bool = False, sample_batches: int = 2):
+    def validate(self, step: int, end_of_epoch: bool = False):
         actor = self.ppo.actor.module if self.is_distributed else self.ppo.actor
         critic = self.ppo.critic.module if self.is_distributed else self.ppo.critic
 
@@ -207,11 +220,25 @@ class RLNFTrainer:
                 desc=f"Validation at step {step}"
             )
 
-            for idx, batch in enumerate(pbar_val):
-                if idx >= sample_batches:
-                    break  # sample rapide
+            for batch in pbar_val:
+                actor.spec_augmentation = None
+                actor.sample_rate = 16000
+                actor.preprocessor.featurizer.to(self.device)
 
-                # ===== reward + value =====
+                audio = [aud for aud in batch["_audio"]]
+                hyps = actor.transcribe(audio, batch_size=8)
+                hyp_texts = [h.text for h in hyps]
+
+                refs = self.processor.tokenizer.batch_decode(
+                    batch["text"], skip_special_tokens=True
+                )
+
+                # metrics per batch
+                batch_wer = word_error_rate(hyp_texts, refs)
+                batch_cer = word_error_rate(hyp_texts, refs, use_cer=True)
+                wers.append(batch_wer)
+                cers.append(batch_cer)
+
                 val_dict = collect_batch(
                     batch=batch,
                     asr_model=actor,
@@ -220,29 +247,14 @@ class RLNFTrainer:
                     processor=self.processor,
                     device=self.device,
                 )
+
                 batch_reward = val_dict["reward"].mean()
                 batch_value = val_dict["values"].mean()
                 rewards.append(batch_reward)
                 values.append(batch_value)
 
-                # Rank 0 : transcription + WER/CER
+                # affichage live par batch
                 if self.is_main:
-                    actor.spec_augmentation = None
-                    actor.sample_rate = 16000
-                    actor.preprocessor.featurizer.to(self.device)
-
-                    audio = [aud for aud in batch["_audio"]]
-                    hyps = actor.transcribe(audio, batch_size=self.batch_size)
-                    hyp_texts = [h.text for h in hyps]
-
-                    refs = self.processor.tokenizer.batch_decode(batch["text"], skip_special_tokens=True)
-
-                    batch_wer = word_error_rate(hyp_texts, refs)
-                    batch_cer = word_error_rate(hyp_texts, refs, use_cer=True)
-                    wers.append(batch_wer)
-                    cers.append(batch_cer)
-
-                    # affichage live
                     pbar_val.set_postfix({
                         "WER": f"{sum(wers)/len(wers):.4f}",
                         "CER": f"{sum(cers)/len(cers):.4f}",
@@ -250,57 +262,84 @@ class RLNFTrainer:
                         "Value": f"{sum(values)/len(values):.3f}",
                     })
 
-        # ===== DDP reduce =====
-        t = torch.tensor([
-            sum(wers) if wers else 0.0,
-            sum(cers) if cers else 0.0,
-            sum([r.item() for r in rewards]),
-            sum([v.item() for v in values]),
-            len(wers) if wers else 1
-        ], device=self.device)
+            # ===== reduce metrics across GPUs =====
+            t = torch.tensor([
+                sum(wers),
+                sum(cers),
+                sum([r.item() for r in rewards]),
+                sum([v.item() for v in values]),
+                len(wers)
+            ], device=self.device)
 
-        if self.is_distributed:
-            dist.all_reduce(t, op=dist.ReduceOp.SUM)
+            if self.is_distributed:
+                dist.all_reduce(t, op=dist.ReduceOp.SUM)
 
-        total = t[-1].item()
-        to_log = {
-            "val/wer": (t[0]/total).item(),
-            "val/cer": (t[1]/total).item(),
-            "val/reward": (t[2]/total).item(),
-            "val/value": (t[3]/total).item(),
-        }
+            total = t[-1].item()
+            to_log = {
+                "val/wer": (t[0]/total).item(),
+                "val/cer": (t[1]/total).item(),
+                "val/reward": (t[2]/total).item(),
+                "val/value": (t[3]/total).item(),
+            }
 
-        if end_of_epoch:
-            to_log["epoch"] = self.current_epoch
+            if end_of_epoch:
+                to_log["epoch"] = self.current_epoch
 
-        # ===== sauvegarde du meilleur =====
-        cur = to_log[self.save_best_by]
-        if (self.save_best_mode == "min" and cur < self.best_val) or (self.save_best_mode == "max" and cur > self.best_val):
-            self.best_val = cur
-            self.save_best(step)
+            cur = to_log[self.save_best_by]
+            if (
+                (self.save_best_mode == "min" and cur < self.best_val)
+                or (self.save_best_mode == "max" and cur > self.best_val)
+            ):
+                self.best_val = cur
+                self.save_best(step)
 
-        # ===== log =====
-        if self.is_main:
-            if self._use_wandb:
-                wandb.log(to_log, step=step)
-            for k, v in to_log.items():
-                self.tb_writer.add_scalar(k, v, step)
+            if self.is_main:
+                if self._use_wandb:
+                    wandb.log(to_log, step=step)
+                for k, v in to_log.items():
+                    self.tb_writer.add_scalar(k, v, step)
 
         actor.train()
         critic.train()
+
 
     # =====================================================
     # SAVE
     # =====================================================
     def save_best(self, step: int):
-        #actor = self.ppo.actor.module if self.is_distributed else self.ppo.actor
-        #critic = self.ppo.critic.module if self.is_distributed else self.ppo.critic
+        
+        # Récupérer les vrais modules (si wrapped en DDP)
+        actor = self.ppo.actor.module if hasattr(self.ppo.actor, "module") else self.ppo.actor
+        critic = self.ppo.critic.module if hasattr(self.ppo.critic, "module") else self.ppo.critic
 
-        actor = self.ppo.actor.module if hasattr(actor, "module") else actor
-        critic = self.ppo.critic.module if hasattr(critic, "module") else critic
+        actor_path = os.path.join(self.save_dir, f"best_step{step}_actor.nemo")
+        critic_dir = os.path.join(self.save_dir, f"best_step{step}_critic")
+        fallback_actor = os.path.join(self.save_dir, f"best_step{step}_actor_state.pt")
+        fallback_critic = os.path.join(self.save_dir, f"best_step{step}_critic_state.pt")
 
-        actor.save_to(os.path.join(self.save_dir, f"best_step{step}_actor.nemo"))
-        critic.save_pretrained(os.path.join(self.save_dir, f"best_step{step}_critic"))
+        # Sauvegarde actor
+        try:
+            actor.save_to(actor_path)
+            print(f"[save_best] actor saved -> {actor_path}")
+        except Exception as e:
+            print(f"[save_best] Warning: actor.save_to failed: {e}. Attempting state_dict fallback.")
+            try:
+                torch.save(actor.state_dict(), fallback_actor)
+                print(f"[save_best] actor.state_dict saved -> {fallback_actor}")
+            except Exception as e2:
+                print(f"[save_best] ERROR: Could not save actor state_dict: {e2}")
+
+        # Sauvegarde critic
+        try:
+            critic.save_pretrained(critic_dir)
+            print(f"[save_best] critic saved -> {critic_dir}")
+        except Exception as e:
+            print(f"[save_best] Warning: critic.save_pretrained failed: {e}. Attempting state_dict fallback.")
+            try:
+                torch.save(critic.state_dict(), fallback_critic)
+                print(f"[save_best] critic.state_dict saved -> {fallback_critic}")
+            except Exception as e2:
+                print(f"[save_best] ERROR: Could not save critic state_dict: {e2}")
 
     def save_final(self):
         actor = self.ppo.actor.module if self.is_distributed else self.ppo.actor
