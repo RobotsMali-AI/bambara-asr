@@ -186,12 +186,23 @@ class RLNFTrainer:
                     })
 
                     global_step += 1
+                    
+                    if self.is_distributed:
+                        dist.barrier()
 
-                    if self.is_main and self.val_every > 0 and global_step % self.val_every == 0:
+                    if self.val_every > 0 and global_step % self.val_every == 0:
                         self.validate(global_step)
+                        
+                    if self.is_distributed:
+                        dist.barrier()
 
-                if self.is_main:
-                    self.validate(global_step, end_of_epoch=True)
+                if self.is_distributed:
+                    dist.barrier()
+
+                self.validate(global_step, end_of_epoch=True)
+
+                if self.is_distributed:
+                    dist.barrier()
 
         finally:
             if self.is_main:
@@ -220,10 +231,12 @@ class RLNFTrainer:
                 desc=f"Validation at step {step}"
             )
 
+            actor.spec_augmentation = None
+            actor.sample_rate = 16000
+            actor.preprocessor.featurizer.to(self.device)
+            
             for batch in pbar_val:
-                actor.spec_augmentation = None
-                actor.sample_rate = 16000
-                actor.preprocessor.featurizer.to(self.device)
+               
 
                 audio = [aud for aud in batch["_audio"]]
                 hyps = actor.transcribe(audio, batch_size=8)
