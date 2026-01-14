@@ -238,7 +238,7 @@ class RLNFTrainer:
             for batch in pbar_val:
                
 
-                audio = [aud for aud in batch["_audio"]]
+                audio = [aud.to(self.device) for aud in batch["_audio"]]
                 hyps = actor.transcribe(audio, batch_size=8)
                 hyp_texts = [h.text for h in hyps]
 
