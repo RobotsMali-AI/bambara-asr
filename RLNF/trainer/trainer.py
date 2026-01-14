@@ -231,14 +231,16 @@ class RLNFTrainer:
                 desc=f"Validation at step {step}"
             )
 
-            actor.spec_augmentation = None
-            actor.sample_rate = 16000
-            actor.preprocessor.featurizer.to(self.device)
+            
             
             for batch in pbar_val:
                
 
-                audio = [aud.to(self.device) for aud in batch["_audio"]]
+                actor.spec_augmentation = None
+                actor.sample_rate = 16000
+                actor.preprocessor.featurizer.to(self.device)
+                
+                audio = [aud for aud in batch["_audio"]]
                 hyps = actor.transcribe(audio, batch_size=8)
                 hyp_texts = [h.text for h in hyps]
 
