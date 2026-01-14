@@ -158,6 +158,8 @@ class RLNFTrainer:
 
                     # ===== reward sync =====
                     if self.is_distributed:
+                       
+                        batch_dict["reward"] = batch_dict["reward"].to(self.device)
                         dist.all_reduce(batch_dict["reward"], op=dist.ReduceOp.SUM)
                         batch_dict["reward"] /= self.world_size
 
@@ -306,6 +308,11 @@ class RLNFTrainer:
     def save_best(self, step: int):
         actor = self.ppo.actor.module if self.is_distributed else self.ppo.actor
         critic = self.ppo.critic.module if self.is_distributed else self.ppo.critic
+        
+        actor = actor.module if hasattr(actor, "module") else actor
+        critic = critic.module if hasattr(critic, "module") else critic
+
+
 
         actor.save_to(os.path.join(self.save_dir, f"best_step{step}_actor.nemo"))
         critic.save_pretrained(os.path.join(self.save_dir, f"best_step{step}_critic"))
