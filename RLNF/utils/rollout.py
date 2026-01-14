@@ -113,7 +113,7 @@ def _seq_logprob_ctc(
     log_probs_tbv = log_probs_btv.permute(1, 0, 2).float()
     flat_targets_1d = _pack_targets_1d(targets_padded_bl, target_lengths_b).to(log_probs_btv.device)
 
-    ctc = nn.CTCLoss(blank=blank_idx, reduction="mean", zero_infinity=True)
+    ctc = nn.CTCLoss(blank=blank_idx, reduction="none", zero_infinity=True)
     nll = ctc(log_probs_tbv, flat_targets_1d, input_lengths_b.int(), target_lengths_b.int())  # [B]
     return -nll  # [B], sequence log-prob
 
