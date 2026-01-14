@@ -292,11 +292,12 @@ class RLNFTrainer:
         critic = self.ppo.critic.module if self.is_distributed else self.ppo.critic
 
         actor.save_to(os.path.join(self.save_dir, f"best_step{step}_actor.nemo"))
-        torch.save(critic.state_dict(), os.path.join(self.save_dir, f"best_step{step}_critic.pt"))
+        critic.save_pretrained(os.path.join(self.save_dir, f"best_step{step}_critic.pt"))
 
     def save_final(self):
         actor = self.ppo.actor.module if self.is_distributed else self.ppo.actor
         critic = self.ppo.critic.module if self.is_distributed else self.ppo.critic
 
         actor.save_to("actor_final.nemo")
-        torch.save(critic.state_dict(), "critic_final.pt")
+        critic.save_pretrained("critic_final")
+        #torch.save(critic.state_dict(), "critic_final.pt")
