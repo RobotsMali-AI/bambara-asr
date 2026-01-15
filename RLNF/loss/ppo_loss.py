@@ -42,10 +42,10 @@ class PPOLoss(nn.Module):
             loss: scalar tensor
         """
         # probability ratio
-        log_ratio = (logp_new - logp_old).clamp(-10, 10)
-        ratio = torch.exp(log_ratio)
+        #log_ratio = (logp_new - logp_old).clamp(-10, 10)
+        #ratio = torch.exp(log_ratio)
 
-        #ratio = torch.exp(logp_new - logp_old)
+        ratio = torch.exp(logp_new - logp_old)
         # clipped surrogate
         clipped_obj = _clip_surrogate(ratio, advantages, self.clip_eps)
         # PPO loss is negative of the objective

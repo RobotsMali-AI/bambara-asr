@@ -156,10 +156,10 @@ class PPOOptimizer:
                 # Diagnostics
                 with torch.no_grad():
                     
-                    #ratio = torch.exp(logp_new - logp_old).clamp(-10, 10)
+                    ratio = torch.exp(logp_new - logp_old)
                     
-                    log_ratio = (logp_new - logp_old)
-                    ratio = torch.exp(log_ratio.clamp(-10, 10))
+                    #log_ratio = (logp_new - logp_old)
+                    #ratio = torch.exp(log_ratio.clamp(-10, 10))
                     # Ignore invalid rows for clipping stat
                     ratio_valid = ratio[valid] if valid.any() else ratio
                     frac_clipped = (
