@@ -167,7 +167,7 @@ class RLNFTrainer:
                     stats = self.ppo.update(batch_dict)
 
                     if self.is_main:
-                        if self._use_wandb:
+                        if self._use_wandb and wandb.run is not None:
                             wandb.log({f"train/{k}": v for k, v in stats.items()}, step=global_step)
 
                         for k, v in stats.items():
@@ -268,14 +268,14 @@ class RLNFTrainer:
                 rewards.append(batch_reward)
                 values.append(batch_value)
 
-                # affichage live par batch
-                if self.is_main:
-                    pbar_val.set_postfix({
-                        "WER": f"{sum(wers)/len(wers):.4f}",
-                        "CER": f"{sum(cers)/len(cers):.4f}",
-                        "Reward": f"{sum(rewards)/len(rewards):.3f}",
-                        "Value": f"{sum(values)/len(values):.3f}",
-                    })
+            # affichage live par batch
+            if self.is_main:
+                pbar_val.set_postfix({
+                    "WER": f"{sum(wers)/len(wers):.4f}",
+                    "CER": f"{sum(cers)/len(cers):.4f}",
+                    "Reward": f"{sum(rewards)/len(rewards):.3f}",
+                    "Value": f"{sum(values)/len(values):.3f}",
+                })
 
             # ===== reduce metrics across GPUs =====
             t = torch.tensor([

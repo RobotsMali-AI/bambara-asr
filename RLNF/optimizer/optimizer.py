@@ -80,7 +80,7 @@ class PPOOptimizer:
         values_old = batch["values"].to(self.device, non_blocking=True)
 
         # Old advantages (on-policy): use stored old values for stability
-        adv = self._normalize_adv(reward - values_old).detach()
+        adv = (reward - values_old).detach() #self._normalize_adv
 
         self.actor.train()
         self.critic.train()
@@ -155,7 +155,11 @@ class PPOOptimizer:
 
                 # Diagnostics
                 with torch.no_grad():
-                    ratio = torch.exp(logp_new - logp_old)
+                    
+                    #ratio = torch.exp(logp_new - logp_old).clamp(-10, 10)
+                    
+                    log_ratio = (logp_new - logp_old)
+                    ratio = torch.exp(log_ratio.clamp(-10, 10))
                     # Ignore invalid rows for clipping stat
                     ratio_valid = ratio[valid] if valid.any() else ratio
                     frac_clipped = (
