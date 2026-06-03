@@ -22,18 +22,18 @@ if [ ! -f "$REQ_FILE" ]; then
 fi
 
 # Install Python 3.10 (ubuntu)
-sudo apt update
-sudo apt install software-properties-common -y
-sudo add-apt-repository ppa:deadsnakes/ppa
-sudo apt update
-sudo apt install python3.10 python3.10-venv python3.10-dev -y
+apt update
+apt install software-properties-common -y
+add-apt-repository ppa:deadsnakes/ppa
+apt update
+apt install python3.10 python3.10-venv python3.10-dev -y
 
 # Create a virtual environment
 python3.10 -m venv "$VENV_PATH"
 source "$VENV_PATH/bin/activate"
 
 # OS packages (Ubuntu)
-if ! sudo apt-get install -y libsndfile1 ffmpeg; then
+if ! apt-get install -y libsndfile1 ffmpeg; then
     echo "Error installing OS packages. Check permissions."
     exit 1
 fi
