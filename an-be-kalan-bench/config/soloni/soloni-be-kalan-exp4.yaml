@@ -41,7 +41,7 @@ wandb:
 optim:
   name: "adamw"
   # Slightly lower LR if unfreezing
-  lr: 1.5
+  lr: 0.03
   betas: [0.9, 0.98]
   weight_decay: 1e-4
   sched:
