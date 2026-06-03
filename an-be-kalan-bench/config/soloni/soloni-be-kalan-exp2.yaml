@@ -1,0 +1,68 @@
+model:
+  name: "RobotsMali/soloni-114m-tdt-ctc-v2"
+  first_training: False
+
+tokenizer:
+  path: "tokenizers/soloni"
+  type: "bpe"
+
+data_loaders:
+  train:
+    manifest_filepath: "./an-be-kalan-bench/train-manifest.jsonl"
+    sample_rate: 16000
+    max_duration: 30
+    min_duration: 0.1
+    batch_size: 64
+    num_workers: 16
+    shuffle: True
+    pin_memory: True
+  valid:
+    manifest_filepath: "./an-be-kalan-bench/test-manifest.jsonl"  # Path to the validation manifest
+    sample_rate: 16000
+    max_duration: 10
+    batch_size: 32
+    num_workers: 16
+    shuffle: False
+    pin_memory: True
+  test:
+    manifest_filepath: "./an-be-kalan-bench/test-manifest.jsonl" # Path to the test manifest
+    sample_rate: 16000
+    max_duration: 30
+    batch_size: 32
+    num_workers: 16
+    shuffle: False
+    pin_memory: True
+
+wandb:
+  project: "anBeKalanBench" # Ensure this matches your WandB project name
+  name: "soloni-be-kalan-exp2" # Ensure this is unique for each run
+  model: "soloni-be-kalan"
+
+optim:
+  name: "adamw"
+  # Slightly lower LR if unfreezing
+  lr: 1.5
+  betas: [0.9, 0.98]
+  weight_decay: 1e-4
+  sched:
+    name: "NoamAnnealing"
+    max_steps: 950 
+    warmup_ratio: 0.08
+    d_model: 512 
+    min_lr: 1e-6
+    last_epoch: -1
+
+
+training:
+  # freezing the encoder
+  freeze_encoder: False
+  precision: "bf16-mixed"
+  checkpoint_dir: "./checkpoints/${wandb.model}"
+  save_top_k: 1
+  patience: 15  # more patience
+  epochs: 50
+  accumulate_grad_batches: 1
+  check_val_every_n_epoch: 1
+  resume_if_exists: True
+  resume_ignore_no_checkpoint: True
+  save_model_path: "models/${wandb.name}.nemo"

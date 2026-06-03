@@ -1,0 +1,3 @@
+export GOOGLE_APPLICATION_CREDENTIALS="$HOME/work/key.json"
+ulimit -n 1048576
+export NUMBA_CUDA_USE_NVIDIA_BINDING="0"
