@@ -1,6 +1,6 @@
 # Example config for speech intent classification and slot filling with FastConformer-Transformer architecture.
 
-name: "Soloni-Transformer-SLU-BPE"
+name: "soloni-transformer-slu-exp1"
 
 pretrained_encoder:
   name: RobotsMali/soloni-114m-tdt-ctc-v3
@@ -17,7 +17,7 @@ model:
     joint_hidden: 640
 
   train_ds:
-    manifest_filepath: ???
+    manifest_filepath: ./data/train.jsonl
     sample_rate: ${model.sample_rate}
     batch_size: 16  # 16 for 32GB GPUs
     shuffle: true
@@ -25,7 +25,7 @@ model:
     pin_memory: true
     use_start_end_token: true
     trim_silence: false
-    max_duration: 11.0
+    max_duration: 20.0
     min_duration: 0.0
     # tarred datasets
     is_tarred: false
@@ -36,18 +36,18 @@ model:
     bucketing_batch_size: null
 
   validation_ds:
-    manifest_filepath: ???
+    manifest_filepath: ./data/test.jsonl
     sample_rate: ${model.sample_rate}
-    batch_size: 32 # you may increase batch_size if your memory allows
+    batch_size: 16 # you may increase batch_size if your memory allows
     shuffle: false
     num_workers: 8
     pin_memory: true
     use_start_end_token: true
 
   test_ds:
-    manifest_filepath: null
+    manifest_filepath: ./data/test.jsonl
     sample_rate: ${model.sample_rate}
-    batch_size: 32 # you may increase batch_size if your memory allows
+    batch_size: 16 # you may increase batch_size if your memory allows
     shuffle: false
     num_workers: 8
     pin_memory: true
@@ -55,7 +55,7 @@ model:
 
   # you may find more detail on how to train a tokenizer at: /scripts/tokenizers/process_asr_text_tokenizer.py
   tokenizer:
-    dir: ???  # path to directory which contains either tokenizer.model (bpe) or vocab.txt (wpe)
+    dir: ./tokenizers/slu_tokenizer  # path to directory which contains either tokenizer.model (bpe) or vocab.txt (wpe)
     type: bpe  # Can be either bpe (SentencePiece tokenizer) or wpe (WordPiece tokenizer)
 
   preprocessor:
@@ -138,7 +138,7 @@ model:
     ffn_dropout: 0.0
 
   classifier:
-    _target_: nemo.collections.common.parts.MultiLayerPerceptron
+    _target_: nemo.collections.asr.parts.submodules.token_classifier.TokenClassifier
     hidden_size: ${model.encoder.d_model}
     num_classes: -1
     num_layers: 1

@@ -65,8 +65,7 @@ https://docs.nvidia.com/deeplearning/nemo/user-guide/docs/en/main/asr/speech_int
 """
 
 from pathlib import Path
-
-import pytorch_lightning as pl
+import lightning.pytorch as pl 
 import torch
 from omegaconf import OmegaConf
 
@@ -74,7 +73,8 @@ from nemo.collections.asr.models import ASRModel, SLUIntentSlotBPEModel, SpeechE
 from nemo.core.config import hydra_runner
 from nemo.utils import logging
 from nemo.utils.exp_manager import exp_manager
-
+from nemo.core.classes.common import typecheck
+typecheck.set_typecheck_enabled(False)
 
 @hydra_runner(config_path="./configs/", config_name="conformer_transformer_large_bpe")
 def main(cfg):

@@ -64,10 +64,9 @@ def process_record(record, root_dir):
     if main_url:
         filename = f"{audio_id}.wav"
         # Using forward slashes for cross-platform JSON manifest compliance
-        rel_path = f"{root_dir}/audios/{filename}" 
-        abs_path = os.path.join(root_dir, 'audios', filename)
+        path = os.path.join(root_dir, 'audios', filename)
         
-        duration = download_and_convert(main_url, abs_path)
+        duration = download_and_convert(main_url, path)
         if duration is not None:
             manifest_annot = {
                 'scenario': annotation.get('scenario'),
@@ -76,7 +75,7 @@ def process_record(record, root_dir):
                 'entities': [] if is_transfer else entities
             }
             results['main'] = {
-                "audio_filepath": rel_path,
+                "audio_filepath": path,
                 "offset": 0,
                 "duration": duration,
                 "text": str(manifest_annot) # Cast dict to string using single quotes
@@ -94,15 +93,14 @@ def process_record(record, root_dir):
         # Process Amount
         if amount_url and amount_filler:
             amount_filename = f"amount_{audio_id}.wav"
-            rel_amount_path = f"{root_dir}/amount/audios/{amount_filename}"
-            abs_amount_path = os.path.join(root_dir, 'amount', 'audios', amount_filename)
+            amount_path = os.path.join(root_dir, 'amount', 'audios', amount_filename)
             
-            amt_duration = download_and_convert(amount_url, abs_amount_path)
+            amt_duration = download_and_convert(amount_url, amount_path)
             if amt_duration is not None:
                 try:
                     normalized_amt = normalizer(amount_filler, is_money=True).replace("-", " ")
                     results['amount'] = {
-                        "audio_filepath": rel_amount_path,
+                        "audio_filepath": amount_path,
                         "duration": amt_duration,
                         "text": normalized_amt
                     }
@@ -112,15 +110,14 @@ def process_record(record, root_dir):
         # Process Number
         if number_url and number_filler:
             number_filename = f"number_{audio_id}.wav"
-            rel_number_path = f"{root_dir}/number/audios/{number_filename}"
-            abs_number_path = os.path.join(root_dir, 'number', 'audios', number_filename)
+            number_path = os.path.join(root_dir, 'number', 'audios', number_filename)
             
-            num_duration = download_and_convert(number_url, abs_number_path)
+            num_duration = download_and_convert(number_url, number_path)
             if num_duration is not None:
                 try:
                     normalized_num = normalizer(number_filler, is_money=False).replace("-", " ")
                     results['number'] = {
-                        "audio_filepath": rel_number_path,
+                        "audio_filepath": number_path,
                         "duration": num_duration,
                         "text": normalized_num
                     }
@@ -170,9 +167,9 @@ def main():
     parser = argparse.ArgumentParser(description="Process Firebase Audio JSON and generate manifests.")
     parser.add_argument("json_file", help="Path to the exported JSON file")
     parser.add_argument("root_dir", help="Root directory for outputs (e.g., 'ROOT')")
-    parser.add_argument("--main_test", type=float, default=0.2, help="Ratio (0.0-1.0) or int for main test size")
-    parser.add_argument("--amount_test", type=float, default=0.2, help="Ratio (0.0-1.0) or int for amount test size")
-    parser.add_argument("--number_test", type=float, default=0.2, help="Ratio (0.0-1.0) or int for number test size")
+    parser.add_argument("--main_test", type=float, default=0.15, help="Ratio (0.0-1.0) or int for main test size")
+    parser.add_argument("--amount_test", type=float, default=0.15, help="Ratio (0.0-1.0) or int for amount test size")
+    parser.add_argument("--number_test", type=float, default=0.15, help="Ratio (0.0-1.0) or int for number test size")
     parser.add_argument("--workers", type=int, default=10, help="Number of concurrent download workers")
     args = parser.parse_args()
 
