@@ -69,12 +69,26 @@ from nemo.collections.asr.models import SLUIntentSlotBPEModel
 model = SLUIntentSlotBPEModel.from_pretrained(
     "RobotsMali/soloni-ic-slot-fintech-v0"
 )
+# SLUIntentSlotBPEModel needs these compatibility patches in NeMo 2.x.
+model.decoder.freeze = lambda: None
+model.decoder.unfreeze = lambda *args, **kwargs: None
+
+original_decode = model.sequence_generator.decode_semantics_from_tokens
+
+def patched_decode(seq_tokens):
+    # NeMo 2.x may return (tokens, lengths); decode the token tensor.
+    if isinstance(seq_tokens, tuple):
+        seq_tokens = seq_tokens[0]
+    return original_decode(seq_tokens)
+
+model.sequence_generator.decode_semantics_from_tokens = patched_decode
+
 model.eval()
 predictions = model.transcribe(["banking_command.wav"])
 print(predictions[0])
 ```
 
-The model preprocesses speech at 16 kHz. Its decoder emits a Python-style serialized structure such as a mapping containing `scenario`, `action`, and an `entities` list. Parse defensively: validate syntax, allow-listed actions, entity types, and application state before executing anything.
+Apply both patches after loading the model and before the first call to `transcribe()`. They work around NeMo 2.x incompatibilities in decoder freezing and tuple-valued sequence-generator output; they were tested with NeMo 2.5.0. The model preprocesses speech at 16 kHz. Its decoder emits a Python-style serialized structure such as a mapping containing `scenario`, `action`, and an `entities` list. Parse defensively: validate syntax, allow-listed actions, entity types, and application state before executing anything.
 
 ## Architecture
 
