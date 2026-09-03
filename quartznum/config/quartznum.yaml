@@ -1,0 +1,70 @@
+model:
+  name: "RobotsMali/stt-bm-quartznet15x5-v2"
+  first_training: True
+
+tokenizer:
+  path: null
+  type: "char"
+  vocab: [' ', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'ŋ', 'ɔ', 'ɛ', 'ɲ']
+
+data_loaders:
+  train:
+    manifest_filepath: "./data/train-quartznum.jsonl" # Ensure this is the correct path to your training manifest
+    sample_rate: 16000
+    max_duration: 30
+    min_duration: 0.1
+    batch_size: 16
+    num_workers: 16
+    shuffle: True
+    normalize_transcripts: False
+    labels: [' ', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'ŋ', 'ɔ', 'ɛ', 'ɲ']
+  valid:
+    manifest_filepath: "./data/test-quartznum.jsonl"
+    sample_rate: 16000
+    max_duration: 30
+    batch_size: 16
+    num_workers: 16
+    shuffle: False
+    normalize_transcripts: False
+    labels: [' ', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'ŋ', 'ɔ', 'ɛ', 'ɲ']
+  test:
+    manifest_filepath: "./data/test-quartznum.jsonl"
+    sample_rate: 16000
+    max_duration: 30
+    batch_size: 16
+    num_workers: 16
+    shuffle: False
+    normalize_transcripts: False
+    labels: [' ', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'ŋ', 'ɔ', 'ɛ', 'ɲ']
+
+optim:
+  name: "adam"
+  lr: 5e-4
+  betas: [0.99, 0.95]
+  weight_decay: 1e-3
+  sched:
+    name: "CosineAnnealing"
+    max_steps: 1350
+    warmup_ratio: null
+    warmup_steps: 80
+    min_lr: 1e-6
+    last_epoch: -1
+
+wandb:
+  project: "QuartzNum"      # Ensure this matches your WandB project name
+  name: "quartznum-v1.2.0"     # Ensure this is unique for each run
+  model: "quartznum"
+
+training:
+  freeze_encoder: False
+  precision: "bf16-mixed"
+  checkpoint_dir: "./checkpoints/${wandb.model}"
+  save_top_k: 1
+  patience: 15
+  epochs: 50
+  accumulate_grad_batches: 1
+  log_every_n_steps: 5
+  check_val_every_n_epoch: 1
+  resume_if_exists: True
+  resume_ignore_no_checkpoint: True
+  save_model_path: "quartznum-models/${wandb.name}.nemo"

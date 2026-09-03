@@ -1,0 +1,528 @@
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'get_balance', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'transfer_to_momo', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Operations', 'type': 'page'}]}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Operations', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'transfer_to_momo', 'entities': []}
+{'scenario': 'Navigate', 'action': 'logout', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Profile', 'type': 'page'}]}
+{'scenario': 'Navigate', 'action': 'logout', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Operations', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'get_balance', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Profile', 'type': 'page'}]}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Navigate', 'action': 'logout', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_momo', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Operations', 'type': 'page'}]}
+{'scenario': 'Navigate', 'action': 'logout', 'entities': []}
+{'scenario': 'Navigate', 'action': 'logout', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Navigate', 'action': 'logout', 'entities': []}
+{'scenario': 'Operation', 'action': 'get_balance', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Profile', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Profile', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Profile', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_momo', 'entities': []}
+{'scenario': 'Navigate', 'action': 'logout', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Navigate', 'action': 'logout', 'entities': []}
+{'scenario': 'Operation', 'action': 'get_balance', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_momo', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Profile', 'type': 'page'}]}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Profile', 'type': 'page'}]}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_momo', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Profile', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'get_balance', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Navigate', 'action': 'logout', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'transfer_to_momo', 'entities': []}
+{'scenario': 'Operation', 'action': 'get_balance', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Navigate', 'action': 'logout', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Profile', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Profile', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'transfer_to_momo', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Profile', 'type': 'page'}]}
+{'scenario': 'Navigate', 'action': 'logout', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Profile', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'FAQ', 'action': 'search_faq', 'entities': [{'filler': 'account', 'type': 'topic'}, {'filler': 'required_docs', 'type': 'category'}]}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'get_balance', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Profile', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'get_balance', 'entities': []}
+{'scenario': 'Navigate', 'action': 'logout', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'transfer_to_momo', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_momo', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Navigate', 'action': 'logout', 'entities': []}
+{'scenario': 'Operation', 'action': 'get_balance', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_momo', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_momo', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Navigate', 'action': 'logout', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_momo', 'entities': []}
+{'scenario': 'Operation', 'action': 'get_balance', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_momo', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Operations', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'transfer_to_momo', 'entities': []}
+{'scenario': 'Operation', 'action': 'get_balance', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Profile', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Profile', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'get_balance', 'entities': []}
+{'scenario': 'Navigate', 'action': 'logout', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Navigate', 'action': 'logout', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Navigate', 'action': 'logout', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'transfer_to_momo', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'FAQ', 'action': 'search_faq', 'entities': [{'filler': 'account', 'type': 'topic'}, {'filler': 'required_docs', 'type': 'category'}]}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_momo', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Operations', 'type': 'page'}]}
+{'scenario': 'Navigate', 'action': 'logout', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_momo', 'entities': []}
+{'scenario': 'Operation', 'action': 'get_balance', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'get_balance', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Profile', 'type': 'page'}]}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'transfer_to_momo', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'get_balance', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Profile', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'get_balance', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_momo', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Profile', 'type': 'page'}]}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Navigate', 'action': 'logout', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_momo', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'transfer_to_momo', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Navigate', 'action': 'logout', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Operations', 'type': 'page'}]}
+{'scenario': 'Navigate', 'action': 'logout', 'entities': []}
+{'scenario': 'Operation', 'action': 'get_balance', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Navigate', 'action': 'logout', 'entities': []}
+{'scenario': 'Operation', 'action': 'get_balance', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_momo', 'entities': []}
+{'scenario': 'Operation', 'action': 'get_balance', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Operations', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'get_balance', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Operations', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'get_balance', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Navigate', 'action': 'logout', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'transfer_to_momo', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Operations', 'type': 'page'}]}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Profile', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'transfer_to_momo', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'transfer_to_momo', 'entities': []}
+{'scenario': 'Navigate', 'action': 'logout', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_momo', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Profile', 'type': 'page'}]}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'get_balance', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_momo', 'entities': []}
+{'scenario': 'Operation', 'action': 'get_balance', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Profile', 'type': 'page'}]}
+{'scenario': 'Navigate', 'action': 'logout', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'transfer_to_momo', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Navigate', 'action': 'logout', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Profile', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Navigate', 'action': 'logout', 'entities': []}
+{'scenario': 'Operation', 'action': 'get_balance', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'get_balance', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_momo', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'get_balance', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_momo', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Profile', 'type': 'page'}]}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Navigate', 'action': 'logout', 'entities': []}
+{'scenario': 'Operation', 'action': 'get_balance', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Profile', 'type': 'page'}]}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Profile', 'type': 'page'}]}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'get_balance', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Profile', 'type': 'page'}]}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'transfer_to_momo', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'get_balance', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Navigate', 'action': 'logout', 'entities': []}
+{'scenario': 'Operation', 'action': 'get_balance', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'get_balance', 'entities': []}
+{'scenario': 'Operation', 'action': 'get_balance', 'entities': []}
+{'scenario': 'Operation', 'action': 'get_balance', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_momo', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_momo', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_momo', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'get_balance', 'entities': []}
+{'scenario': 'Operation', 'action': 'get_balance', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'get_balance', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Profile', 'type': 'page'}]}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Profile', 'type': 'page'}]}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'transfer_to_momo', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_momo', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Navigate', 'action': 'logout', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_momo', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Navigate', 'action': 'logout', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_momo', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'transfer_to_momo', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_momo', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_momo', 'entities': []}
+{'scenario': 'Navigate', 'action': 'logout', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_momo', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Navigate', 'action': 'logout', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Operations', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'transfer_to_momo', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Navigate', 'action': 'logout', 'entities': []}
+{'scenario': 'Operation', 'action': 'get_balance', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Profile', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'get_balance', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'get_balance', 'entities': []}
+{'scenario': 'Operation', 'action': 'get_balance', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Navigate', 'action': 'logout', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Navigate', 'action': 'logout', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Profile', 'type': 'page'}]}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'get_balance', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_momo', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_momo', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Navigate', 'action': 'logout', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Navigate', 'action': 'logout', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Profile', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'transfer_to_momo', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'get_balance', 'entities': []}
+{'scenario': 'Operation', 'action': 'get_balance', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'get_balance', 'entities': []}
+{'scenario': 'Operation', 'action': 'get_balance', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Profile', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'get_balance', 'entities': []}
+{'scenario': 'Navigate', 'action': 'logout', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Profile', 'type': 'page'}]}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Profile', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'transfer_to_momo', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_momo', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_momo', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'FAQ', 'action': 'search_faq', 'entities': [{'filler': 'loans_and_credit', 'type': 'topic'}, {'filler': 'required_docs', 'type': 'category'}]}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_momo', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'get_balance', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'get_balance', 'entities': []}
+{'scenario': 'Operation', 'action': 'get_balance', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Profile', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'get_balance', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'transfer_to_momo', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'FAQ', 'type': 'page'}]}
+{'scenario': 'Navigate', 'action': 'logout', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Profile', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Navigate', 'action': 'logout', 'entities': []}
+{'scenario': 'Navigate', 'action': 'logout', 'entities': []}
+{'scenario': 'Navigate', 'action': 'logout', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Profile', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'get_balance', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_momo', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_momo', 'entities': []}
+{'scenario': 'Operation', 'action': 'get_balance', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'transfer_to_momo', 'entities': []}
+{'scenario': 'Navigate', 'action': 'logout', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Navigate', 'action': 'logout', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_momo', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Operations', 'type': 'page'}]}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'get_balance', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_momo', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'get_balance', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_momo', 'entities': []}
+{'scenario': 'Navigate', 'action': 'logout', 'entities': []}
+{'scenario': 'Navigate', 'action': 'logout', 'entities': []}
+{'scenario': 'Operation', 'action': 'get_balance', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Navigate', 'action': 'logout', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'get_balance', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Navigate', 'action': 'logout', 'entities': []}
+{'scenario': 'FAQ', 'action': 'search_faq', 'entities': [{'filler': 'account', 'type': 'topic'}, {'filler': 'required_docs', 'type': 'category'}]}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'get_balance', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_momo', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Navigate', 'action': 'logout', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_momo', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_momo', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'get_balance', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_momo', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_momo', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_momo', 'entities': []}
+{'scenario': 'Operation', 'action': 'get_balance', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_momo', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_momo', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Profile', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Profile', 'type': 'page'}]}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'get_balance', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_momo', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_momo', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'transfer_to_momo', 'entities': []}
+{'scenario': 'Navigate', 'action': 'logout', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_momo', 'entities': []}
+{'scenario': 'Navigate', 'action': 'logout', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'get_balance', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_momo', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Navigate', 'action': 'logout', 'entities': []}
+{'scenario': 'Navigate', 'action': 'logout', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Navigate', 'action': 'Maps_to', 'entities': [{'filler': 'Home', 'type': 'page'}]}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_momo', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}
+{'scenario': 'Operation', 'action': 'transfer_to_account', 'entities': []}

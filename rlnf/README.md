@@ -1,118 +1,41 @@
 # RLNF Toolkit
 
-The `rlnf/` directory houses a Python package for a basic implementation of **Reinforcement Learning from Human Feedback (RLHF)** applied to Automatic Speech Recognition (ASR). Using Proximal Policy Optimization (PPO) and custom reward models, this toolkit streamlines fine‑tuning pre‑trained ASR models based on human quality ratings.
+> [!CAUTION]
+> RLNF is an early research prototype and has been largely inactive since late 2025. It lags behind the repository's current ASR, speech-translation, and narrow-application work. The code is retained for reproducibility and experimentation, but it is not production-ready and may require maintenance for newer dependencies.
 
----
+RLNF (“Reinforcement Learning from Nouhoum Feedback”) explores reinforcement learning from human feedback for automatic speech recognition. It combines a NeMo ASR actor, an audio critic, a learned audio/transcript reward model, and Proximal Policy Optimization (PPO).
+
+## Package Layout
+
+- `trainer.py`: coordinates rollouts, PPO updates, validation, and checkpoints.
+- `dataloaders/`: loads and preprocesses JSONL audio/reward manifests.
+- `reward/`: reward-model architecture and config-driven training.
+- `ppo/`: critic, rollout, loss, and optimizer components.
+- `train_rlnf.py`: config-driven RLNF entry point.
+- `rlnf-config.yaml`: example experiment configuration.
+- `rlnf.png`: high-level architecture diagram.
 
 ## Installation
 
-From the repository root:
+Python 3.10 or newer is required. The pinned research environment uses NeMo 2.5.0:
 
 ```bash
+python -m venv .venv
+source .venv/bin/activate
 pip install -r rlnf/requirements.txt
 pip install -e rlnf
 ```
 
-This will install dependencies such as PyTorch, NVIDIA NeMo, and SentencePiece and register the `rlnf` package in your environment in edit mode.
+Run entry points from the repository root. Generate a fresh configuration or start from the checked-in example:
 
----
-
-## Package Structure
-
-```
-rlnf/
-├── trainer.py            # RLNFTrainer: orchestrates PPO training loop and interactions between actor, critic, and reward model
-├── dataloaders/
-│   ├── audio_dataset.py  # AudioDataset: loads raw audio files and applies AudioToMelSpectrogramPreprocessor
-│   └── reward_dataset.py # RewardDataset: wraps human feedback (score) with transcript and preprocessed audio into PyTorch Dataset
-├── reward/
-│   ├── reward_model.py   # RewardModel: defines neural architectures for scoring ASR outputs (A simple Regression model with a Siamese-like encoder combining text and audio)
-│   ├── train_reward_model.py # Script to train a reward model on annotated data
-│   └── train_utils.py    # Utility functions for training and evaluating a reward-model
-├── ppo/
-│   ├── optimizer.py      # PPOOptimizer: implements actor update with clipping, entropy bonus, and logging
-│   ├── loss.py           # PPOLoss: computes surrogate loss and value function loss
-│   ├── rollout.py        # rollout functions: Collect an on policy bacth of data for PPO
-│   └── critic_network.py # CriticModel: architecture for baseline value estimation
-├── requirements.txt      # pin dependencies for the RLNF package
-└── setup.py              # `setuptools` installer for the `rlnf` package
+```bash
+python rlnf/train_rlnf.py --write-example /tmp/rlnf-example.yaml
+python rlnf/train_rlnf.py --config rlnf/rlnf-config.yaml
+python rlnf/reward/train_reward_model.py --config rlnf/reward/config/default.yaml
 ```
 
-An overview image `rlnf.png` is also included for documentation and presentations.
+Update every path before training. RLNF expects NeMo-style JSONL audio manifests, a SentencePiece tokenizer, and a serialized reward model. The companion human-feedback data and baseline checkpoint are published as [`RobotsMali/transcription-scorer`](https://huggingface.co/datasets/RobotsMali/transcription-scorer) and [`RobotsMali/reward-model`](https://huggingface.co/RobotsMali/reward-model).
 
----
+## Limitations
 
-## Quickstart
-
-Below is a minimal example of fine‑tuning a NeMo ASR model with RLHF:
-
-```python
-from rlnf.reward.reward_model import RewardModel
-from rlnf.ppo.critic_network import CriticModel
-from rlnf.trainer import RLNFTrainer
-
-import torch
-import nemo.collections.asr as nemo_asr
-from sentencepiece import SentencePieceProcessor
-
-# 1. Load pretrained ASR and reward model
-asr_model: nemo_asr.models.EncDecCTCModel = nemo_asr.models.EncDecCTCModel.from_pretrained("RobotsMali/stt-bm-quartznet15x5-V0")
-asr_model.eval()
-
-reward_model = RewardModel.from_pretrained("path/to/reward-model.rw") # Path to a pretrained reward model checkpoint
-
-# Load your sentencepiece tokenizer (for instance the bambara tokenizer in this repo)
-tokenizer = load_tokenizer("bambara-asr/bam-tokenizer-spe-bpe-v1024/tokenizer.model")
-
-# Initialize the critic model
-critic_model = CriticModel(n_mel=preprocessor_config['features'])
-
-# 2. Prepare datasets and Audio Preprocessor config
-
-## Audio preprocessor Config
-preprocessor_config = {
-    'normalize': 'per_feature',
-    'window_size': 0.02,
-    'sample_rate': 16000,
-    'window_stride': 0.01,
-    'window': 'hann',
-    'features': 64,
-    'n_fft': 512,
-    'frame_splicing': 1,
-    'dither': 1e-05,
-    'stft_conv': False
-}
-
-# Training manifest file path
-training_manifest = "path/to/train-manifest.jsonl"
-validation_manifest = "path/to/test-manifest.jsonl" # Expected to contain transcripts, not only audios
-
-# Choose the device
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-# 3. Initialize RLHF trainer
-trainer = RLNFTrainer(
-    reward_model=reward_model,
-    critic_model=critic_model,
-    asr_model=asr_model,
-    train_manifest=training_manifest,
-    val_manifest=validation_manifest,
-    audio_preprocessor_config=preprocessor_config,
-    batch_size=2,
-    epochs=3,
-    num_workers=0,
-    pin_memory=False,
-    sp_tokenizer=tokenizer,
-    device=device,
-    wandb_logging=False,
-)
-
-# 4. Start training
-trainer.train()
-```
-
----
-
-***This is a minimal implementation only aiming at testing a few hypothesis, it is therefore far from optimized***
----
-
+This implementation was built to test hypotheses, not to provide a mature RLHF library. It has no repository-wide test suite, limited scale/performance validation, and strong assumptions about CTC actors, tokenizer padding, preprocessing, and reward-score quality. Treat generated checkpoints as experimental and establish supervised baselines before interpreting PPO gains.

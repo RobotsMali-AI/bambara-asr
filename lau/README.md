@@ -1,81 +1,47 @@
-# LAU: Listen, Attend, Understand (Semantic Regularization for ST)
+# LAU: Listen, Attend, Understand
 
-This directory contains the code and configurations for the **LAU (Listen, Attend, Understand)** framework, a semantic regularization technique designed to stabilize End-to-End Speech Translation (E2E-ST) in low-resource settings with high-variance labels.
+This directory implements **Listen, Attend, Understand (LAU)**, a semantic regularization method for low-resource end-to-end speech translation with high-variance labels. The experiments translate Bambara audio directly into French and accompany the paper [“Listen, Attend, Understand”](https://arxiv.org/abs/2601.01121).
 
-## 🚀 Overview
+## Approach
 
-The LAU framework introduces a directional auxiliary loss that grounds the acoustic encoder’s latent space into a high-resource semantic space (e.g., French BERT/RoBERTa). This repository provides:
+`HybridRNNTCTCLAUModel` extends NeMo's hybrid RNNT/CTC model with a projection head attached to the FastConformer encoder. During training, an auxiliary MSE or cosine loss aligns projected acoustic representations with frozen French sentence embeddings. The semantic branch regularizes training; inference still uses the TDT or CTC decoder.
 
-* A custom NeMo model class: `HybridRNNTCTCLAUModel`.
-* Semantic projection heads for the acoustic encoder.
-* Support for two regularization losses (MSE and Cosine Similarity).
-* Training configurations for low-resource Bambara-French translation with Nvidia NeMo.
+The released [`lau-soloni-114m-mse-k1`](https://huggingface.co/RobotsMali/lau-soloni-114m-mse-k1) checkpoint uses MSE regularization with weight 1. The unregularized [`st-soloni-114m-tdt-ctc`](https://huggingface.co/RobotsMali/st-soloni-114m-tdt-ctc) model is the baseline.
 
-## 🏗️ Architecture: `HybridRNNTCTCLAUModel`
+## Layout
 
-We have extended the standard NVIDIA NeMo `EncDecHybridRNNTCTCBPEModel`. The custom class adds a semantic "anchor" branch to the encoder.
+- `hybrid_rnnt_ctc_lau_models.py`: custom NeMo model class and semantic losses.
+- `train_lau.py`: config-driven training entry point.
+- `config/`: versioned MSE/cosine and loss-weight experiments.
+- `eval/`: transcription, clustering, keyword, QA, summarization, and judging analyses.
+- `tokenizer/`: French-output SentencePiece resources.
+- `requirements.txt`: NeMo 2.5.0 and semantic-embedding dependencies.
 
-### Key Modifications:
-
-* **Semantic Projection Head:** A linear/MLP layer that projects the encoder’s high-level features into the same dimensionality as the frozen text embeddings.
-* **Auxiliary Loss Function:** Implements the regularization weight .
-* **Multi-task Objective:** Model trained with LAU do not merely learn ST, they also incorporate semantics 
-
-
-## 📦 Installation
-
-This project requires **NVIDIA NeMo**. We recommend using the provided `requirements.txt` or a NeMo Docker container.
+## Setup and Training
 
 ```bash
-# Clone the parent repository
-git clone https://github.com/diarray-hub/bambara-asr.git
-cd bambara-asr/lau
-
-# Install dependencies
-pip install nemo_toolkit['all']
-
+git clone https://github.com/RobotsMali-AI/bambara-asr.git
+cd bambara-asr
+python -m venv .venv
+source .venv/bin/activate
+pip install -r lau/requirements.txt
+python lau/train_lau.py --config lau/config/soloni-lau-v2.2.0.yaml
 ```
 
-## ⚙️ Configuration
+Run from the repository root and update manifest, checkpoint, device, and W&B paths in the config. Training uses Bambara audio/French translation pairs from [`RobotsMali/jeli-asr`](https://huggingface.co/datasets/RobotsMali/jeli-asr). Evaluation artifacts are published in [`RobotsMali/lau-eval`](https://huggingface.co/datasets/RobotsMali/lau-eval).
 
-The `.yaml` files in the `/configs` directory are optimized for the **Jeli-ASR** dataset.
+The evaluation utilities cover BLEU/WER/CER, encoder parameter drift, and semantic cluster purity/NMI. Consult each script before use; several analyses require external embedding or language models.
 
-| Name              | Type                              | Params | Trainable |
-|-------------------|-----------------------------------|--------|-----------|
-| preprocessor      | AudioToMelSpectrogramPreprocessor | 0      | NO |
-| encoder           | ConformerEncoder                  | 108 M  | YES |
-| decoder           | RNNTDecoder                       | 3.6 M  | YES |
-| joint             | RNNTJoint                         | 1.1 M  | YES |
-| loss              | RNNTLoss                          | 0      | NO |
-| spec_augmentation | SpectrogramAugmentation           | 0      | NO |
-| wer               | WER                               | 0      | NO |
-| ctc_decoder       | ConvASRDecoder                    | 263 K  | YES |
-| ctc_loss          | CTCLoss                           | 0      | NO |
-| ctc_wer           | WER                               | 0      | NO |
-| embedding_model   | SentenceTransformer               | 110 M  | NO |
-| semantic_head     | Sequential                        | 656 K  | YES |
-| semantic_loss_fn  | MSELoss                           | 0      | NO |
-
-## 📊 Evaluation & Metrics
-
-Beyond standard WER and BLEU, this folder includes scripts to calculate the metrics introduced in our paper:
-
-1. **Total Parameter Drift:** Measures the structural reorganization of the encoder weights.
-2. **Cluster Purity & NMI:** Evaluates the semantic coherence of the latent space using the `lau-eval` dataset labels.
-
-## 📜 Citation
-
-If you use this code or our model checkpoints, please cite this paper (coming soon on arxiv):
+## Citation
 
 ```bibtex
 @misc{diarra2026listenattendunderstandregularization,
-      title={Listen, Attend, Understand: a Regularization Technique for Stable E2E Speech Translation Training on High Variance labels}, 
-      author={Yacouba Diarra and Michael Leventhal},
-      year={2026},
-      eprint={2601.01121},
-      archivePrefix={arXiv},
-      primaryClass={cs.CL},
-      url={https://arxiv.org/abs/2601.01121}, 
+  title={Listen, Attend, Understand: a Regularization Technique for Stable E2E Speech Translation Training on High Variance Labels},
+  author={Yacouba Diarra and Michael Leventhal},
+  year={2026},
+  eprint={2601.01121},
+  archivePrefix={arXiv},
+  primaryClass={cs.CL},
+  url={https://arxiv.org/abs/2601.01121}
 }
-
 ```

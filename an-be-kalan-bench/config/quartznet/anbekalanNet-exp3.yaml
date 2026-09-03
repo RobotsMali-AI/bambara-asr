@@ -1,0 +1,68 @@
+model:
+  name: "RobotsMali/stt-bm-quartznet15x5-v2"
+  first_training: False
+
+tokenizer:
+  path: null
+  type: "char"
+  # vocab: [' ', "'", '-', 'A', 'B', 'C', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'W', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'à', 'è', 'é', 'ô', 'ù', 'ŋ', 'Ɔ', 'Ɛ', 'ɔ', 'ɛ', 'ɲ']
+
+data_loaders:
+  train:
+    manifest_filepath: "./an-be-kalan-bench/train-manifest.jsonl" # Ensure this is the correct path to your training manifest
+    sample_rate: 16000
+    max_duration: 30
+    min_duration: 0.1
+    batch_size: 64
+    num_workers: 16
+    shuffle: True
+    normalize_transcripts: False
+    labels: [' ', "'", '-', 'A', 'B', 'C', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'W', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'à', 'è', 'é', 'ô', 'ù', 'ŋ', 'Ɔ', 'Ɛ', 'ɔ', 'ɛ', 'ɲ']
+  valid:
+    manifest_filepath: "./an-be-kalan-bench/test-manifest.jsonl"
+    sample_rate: 16000
+    max_duration: 15
+    batch_size: 32
+    num_workers: 16
+    shuffle: False
+    normalize_transcripts: False
+    labels: [' ', "'", '-', 'A', 'B', 'C', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'W', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'à', 'è', 'é', 'ô', 'ù', 'ŋ', 'Ɔ', 'Ɛ', 'ɔ', 'ɛ', 'ɲ']
+  test:
+    manifest_filepath: "./an-be-kalan-bench/test-manifest.jsonl"
+    sample_rate: 16000
+    max_duration: 30
+    batch_size: 32
+    num_workers: 16
+    shuffle: False
+    normalize_transcripts: False
+    labels: [' ', "'", '-', 'A', 'B', 'C', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'W', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'à', 'è', 'é', 'ô', 'ù', 'ŋ', 'Ɔ', 'Ɛ', 'ɔ', 'ɛ', 'ɲ']
+
+optim:
+  name: "novograd"
+  lr: 1e-3
+  betas: [0.95, 0.5]
+  weight_decay: 1e-4
+  sched:
+    name: "CosineAnnealing"
+    max_steps: 27100
+    warmup_ratio: 0.08
+    min_lr: 1e-5
+    last_epoch: -1
+
+wandb:
+  project: "anBeKalanBench"      # Ensure this matches your WandB project name
+  name: "anbekalanNet-exp3"     # Ensure this is unique for each run
+  model: "anbekalanNet"
+
+training:
+  freeze_encoder: False
+  precision: "bf16-mixed"
+  checkpoint_dir: "./checkpoints/${wandb.model}"
+  save_top_k: 1
+  patience: 15
+  epochs: 50
+  accumulate_grad_batches: 1
+  check_val_every_n_epoch: 1
+  resume_if_exists: True
+  resume_ignore_no_checkpoint: True
+  save_model_path: "models/${wandb.name}.nemo" # Remember to change this if wandb.name is changed

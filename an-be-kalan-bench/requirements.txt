@@ -1,0 +1,9 @@
+nemo-toolkit[asr]==2.5.0
+scikit-learn==1.6.1
+cuda-toolkit
+numba-cuda[cu13]
+megatron-core
+wandb==0.27.0
+numba==0.62.1
+numpy==1.26.4
+bambara-normalizer==1.1.0

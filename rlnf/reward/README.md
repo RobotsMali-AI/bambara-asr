@@ -1,30 +1,21 @@
-# Reward Module
+# RLNF Reward Model
 
-The `rlnf/reward/` folder contains all the code needed to train and evaluate neural reward models that predict human quality scores for ASR outputs. These models can later be used in an RLNF trainer or as proxy to human evaluation.
+The reward module trains a reference-free scorer for Bambara ASR hypotheses. `RewardModel` combines a convolutional audio encoder with a SentencePiece/LSTM text encoder and maps their concatenated representation to one scalar quality score.
 
----
+## Files
 
-## Contents
+- `reward_model.py`: architecture plus save/load helpers.
+- `train_reward_model.py`: YAML-configured training entry point.
+- `train_utils.py`: training, validation, and checkpoint helpers.
+- `config/default.yaml`: example paths and hyperparameters.
 
+From the repository root:
+
+```bash
+python rlnf/reward/train_reward_model.py \
+  --config rlnf/reward/config/default.yaml
 ```
-rlnf/reward/
-├── reward_model.py         # `RewardModel`: nn.Module defining architecture and forward pass
-├── train_reward_model.py   # Script for training reward models from a reward Dataset manifest
-├── train_reward_model.ipynb # Notebook example for reward-model training workflow
-└── train_utils.py          # Utility functions for training and evaluating a reward model
-```
 
----
+Manifests require `audio_filepath`, `transcription`, and `score` (0–100). Update all paths and inspect the tokenizer pad ID before training. The published baseline is [`RobotsMali/reward-model`](https://huggingface.co/RobotsMali/reward-model), trained with [`RobotsMali/transcription-scorer`](https://huggingface.co/datasets/RobotsMali/transcription-scorer).
 
-## RewardModel
-
-A PyTorch nn.Module that encapsulates:
-
-* **Audio encoder**:  Simple Convolutional architecture that extracts higher level features from preprocessed audio
-* **Text encoder**: Embedding lookup + RNN subnetwork (X LSTM layers) over token IDs
-* **Concat**: Concatenate Audio Encoder's output and Text Encoder's output
-* **Regression head**: Fully connected layers mapping concatenated embeddings to a scalar score
-
----
-
-*See [train_reward_model.ipynb](train_reward_model.ipynb) for an example training notebook*
+Human scores are subjective and only partially reviewed; the resulting model is not a calibrated universal ASR metric. Use it within the documented data distribution and compare its judgments against held-out human ratings.
