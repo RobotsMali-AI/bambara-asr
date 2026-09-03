@@ -1,36 +1,30 @@
-# **README — afvoices**
+# African Next Voices ASR Experiments
 
-This folder contains the code, configurations, and resources used to fine-tune four ASR models, 3 from NVIDIA’s **Parakeet** family + QuartzNet. All experiments here were conducted on a **pre-completion subset** of the **RobotsMali/afvoices** dataset.
-This subset is the one referenced in our dataset paper (insert link here), and is provided for full reproducibility.
+This directory reproduces the Bambara ASR experiments run on the pre-completion subset of [`RobotsMali/afvoices`](https://huggingface.co/datasets/RobotsMali/afvoices). Those experiments produced the repository's `v2` QuartzNet, Soloba CTC, Soloba TDT, and Soloni hybrid TDT-CTC releases. They use NVIDIA NeMo 2.5.0.
 
-## **Contents**
+The final Hugging Face dataset is larger than the subset used for the reported results. Use [`pre-manifests/`](pre-manifests/) to reconstruct the exact train/test partition used in the [African Next Voices dataset paper](https://arxiv.org/abs/2511.18557).
 
-### **1. pre-manifests/**
+## Layout
 
-This directory contains the **training/test manifests** for the *pre-completion* version of the afvoices dataset.
-We used this subset because the dataset was still undergoing annotation when the experiments were run. The final dataset released on Hugging Face includes additional validated samples, but the results reported in our paper correspond exactly to the manifests stored here.
+- `config/`: versioned YAML configurations grouped by architecture.
+- `scripts/train.py`: shared NeMo training entry point.
+- `scripts/test.py`: checkpoint evaluation and best-model export.
+- `scripts/hf_to_nemo_asr.py`: converts Hugging Face audio data to NeMo manifests.
+- `scripts/`: additional normalization, inspection, and data-download helpers.
+- `tokenizers/`: SentencePiece models and source corpora for Soloba and Soloni.
+- `pre-manifests/`: the archived paper-era train/test manifests.
 
-This folder is provided to ensure *full reproducibility* of the WER results reported in the dataset paper. Anyone wishing to evaluate models on the same test set can directly use the manifests provided here.
+## Setup and Use
 
-### **2. config/**
+Run commands from the repository root so imports from `utils` resolve correctly:
 
-YAML configuration files used to train and fine-tune the four Parakeet models.
-Each configuration corresponds to a model variant trained on the same pre-completion subset.
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -r afvoices/requirements.txt
+python afvoices/scripts/train.py \
+  --config afvoices/config/soloni/soloni-v2.2.0.yaml
+python afvoices/scripts/test.py --help
+```
 
-### **3. scripts/**
-
-Utility scripts used throughout the experiments, including. These scripts were used as-is for the experiments whose results appear in the dataset paper.
-
-### **4. tokenizers/**
-
-SentencePiece models used for tokenization in all afvoices v2 models.
-
-### **5. requirements.txt**
-
-Python dependencies for running the experiments.
-
-## **Models**
-
-The ASR models trained from this folder are the **v2 versions** available on Hugging Face under the **RobotsMali** organization.
-A single released model might have been trained using one or more of its associated configs. More details on their [HF model cards](https://huggingface.co/RobotsMali/models)
-
+Config paths are experiment records, not portable defaults: update manifest, tokenizer, checkpoint, device, and W&B settings before training. Several releases were produced through sequential configs, so consult the corresponding [Hugging Face model card](https://huggingface.co/RobotsMali/models) for the final checkpoint's lineage and metrics.

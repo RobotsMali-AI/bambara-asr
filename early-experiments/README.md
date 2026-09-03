@@ -9,13 +9,13 @@ The only exception is **soloba-ctc-v0.0.0.yaml**, which was used to train a mode
 
 ## **Contents**
 
-### **1. config/**
+### **1. configs/**
 
 YAML configuration files for the early-generation models.
 Each file corresponds to one experimental setup used to produce a specific v0 model.
 A single released model might have been trained using one or more of its associated configs. More details on their [HF model cards](https://huggingface.co/RobotsMali/models)
 
-### **3. tokenizers/**
+### **2. early-asr-tokenizer/**
 
 SentencePiece models used by all v0 systems.
 

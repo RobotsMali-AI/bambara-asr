@@ -1,44 +1,39 @@
-# bambara-asr
+# Bambara ASR
 
-**Project Overview**
+Research code, training configurations, evaluation resources, and release documentation for RobotsMali's Bambara speech models. The repository began with general-purpose automatic speech recognition (ASR) and now also covers speech translation, spoken-language understanding (SLU), and narrow models intended for concrete applications.
 
-This repository contains a collection of tools, experiments, and utilities for building and fine-tuning automatic speech recognition (ASR) systems—particularly for the Bambara language—and for experimenting with reinforcement learning from human feedback (RLHF) techniques for ASR training.
+## Projects
 
-**License**
+| Directory | Purpose |
+| --- | --- |
+| [`early-experiments/`](early-experiments/) | First-generation (`v0`) Bambara ASR experiments. |
+| [`kunkado/`](kunkado/) | `v1` ASR fine-tuning on spontaneous, code-switched radio speech. |
+| [`afvoices/`](afvoices/) | `v2` ASR experiments on the African Next Voices Bambara corpus. |
+| [`an-be-kalan-bench/`](an-be-kalan-bench/) | Child-speech and educational-reading ASR. |
+| [`lau/`](lau/) | Bambara-to-French speech translation with semantic regularization. |
+| [`quartznum/`](quartznum/) | Compact ASR specialized for spoken numbers and amounts. |
+| [`slu-ic-slot-filling/`](slu-ic-slot-filling/) | Banking-domain intent classification and slot filling. |
+| [`rlnf/`](rlnf/) | Experimental reinforcement learning from human feedback for ASR. |
+| [`utils/`](utils/) | Shared training, preprocessing, tokenizer, and model-card tools. |
 
-This repository is licensed under the MIT License. See [LICENSE](LICENSE) for details.
+Each project has its own dependencies and instructions. Start with its README and install only its `requirements.txt`; most training workflows require CUDA, PyTorch, and NVIDIA NeMo.
 
----
+## From Models to Applications
 
-## Getting Started
+Recent work prioritizes small, task-specific speech systems over a single general model. [`mobilebamspeech`](https://github.com/RobotsMali-AI/mobilebamspeech) demonstrates on-device ASR, SLU, and TTS integration, while [`mobileBAMking`](https://github.com/RobotsMali-AI/mobileBAMking) applies the number recognizer and banking SLU model to a voice-first mobile-banking proof of concept.
 
-1. **Clone the repository**:
-   ```bash
-   git clone https://github.com/RobotsMali-AI/bambara-asr.git
-   cd bambara-asr
-   ```
+Model training and mobile inference intentionally live in separate repositories. [`NeMoOnnxSharp`](https://github.com/RobotsMali-AI/NeMoOnnxSharp) provides the .NET/NativeAOT ONNX Runtime pipeline used to deploy compatible NeMo ASR and SLU exports on Android.
 
-2. **Install requirements** (for RLNF toolkit & core dependencies):
+## Models, Data, and Documentation
 
-Before you try to experiment with Reinforcement Learning from Nouhoum Feedback
+Released checkpoints and datasets are published under the [`RobotsMali` Hugging Face organization](https://huggingface.co/RobotsMali). Local copies of Hub cards live in [`docs/models/`](docs/models/) and [`docs/data/`](docs/data/); mappings are recorded in [`docs/huggingface.yaml`](docs/huggingface.yaml). Use `python utils/python/hf_cards.py --help` to synchronize a card.
 
-   ```bash
-   pip install -r rlnf/requirements.txt
-   pip install -e rlnf
-   ```
-   
-   Note that the second line will install the package in edit mode, remove -e option to create a permanent install
+Some checkpoints created with NeMo 2.5.0 need a configuration patch when loaded by newer NeMo releases. See the affected model cards and [the upstream NeMo issue](https://github.com/NVIDIA-NeMo/Speech/issues/15658).
 
-3. **Explore sub‑folders**:
+## Project Status
 
-   Each subfolder in this repo holds code and config for different experiments that we have done. Each one also possesses a dedicated README for further details and instructions. Looking for details on [Listen, Attend, Understand?](./lau/)
+RLNF is a proof-of-concept and has been largely inactive since late 2025. Current work focuses on ASR evaluation, speech translation, narrow-domain models, and applications built on released checkpoints.
 
----
+## Contributing and License
 
-## Contributions
-
-RLNF is still experimental and contributions are welcome! Please open an issue or submit a pull request for any bug fix or feature request. For questions or support, file an issue in this repo.
-
----
-
-*README files for individual modules are provided in their respective folders. Start with **`rlnf/README.md`** for detailed instructions on the RLHF toolkit.*
+See [`AGENTS.md`](AGENTS.md) for contributor guidance. Open an issue or pull request for bugs, reproducibility improvements, or documentation corrections. Repository code is MIT-licensed; datasets and model checkpoints have their own licenses stated on their Hugging Face cards.
