@@ -1,6 +1,6 @@
 # Example config for speech intent classification and slot filling with FastConformer-Transformer architecture.
 
-name: "soloni-transformer-slu-exp1"
+name: "soloni-slu-v1.2.0"
 
 pretrained_encoder:
   name: RobotsMali/soloni-114m-tdt-ctc-v3
@@ -55,7 +55,7 @@ model:
 
   # you may find more detail on how to train a tokenizer at: /scripts/tokenizers/process_asr_text_tokenizer.py
   tokenizer:
-    dir: ./tokenizers/slu_tokenizer  # path to directory which contains either tokenizer.model (bpe) or vocab.txt (wpe)
+    dir: ./tokenizer/slu_tokenizer  # path to directory which contains either tokenizer.model (bpe) or vocab.txt (wpe)
     type: bpe  # Can be either bpe (SentencePiece tokenizer) or wpe (WordPiece tokenizer)
 
   preprocessor:
@@ -176,7 +176,7 @@ model:
       min_lr: 1e-5
 
 trainer:
-  devices: -1 # number of GPUs, -1 would use all available GPUs
+  devices: 1 # number of GPUs, -1 would use all available GPUs
   num_nodes: 1
   max_epochs: 50
   max_steps: -1 # computed at runtime if not set
@@ -201,7 +201,7 @@ exp_manager:
   create_checkpoint_callback: true
   checkpoint_callback_params:
     # in case of multiple validation sets, first one is used
-    monitor: "val_wer"
+    monitor: "val_loss"
     mode: "min"
     save_top_k: 2
     always_save_nemo: true # saves the checkpoints as nemo files instead of PTL checkpoints
